@@ -42,9 +42,15 @@ public class TenantDbContext : DbContext, IApplicationDbContext
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(typeof(TenantDbContext).Assembly);
-        QueryFilters.TenantQueryFilterBuilder.ApplyGlobalFilters(builder, _tenant);
+        QueryFilters.TenantQueryFilterBuilder.ApplyGlobalFilters(builder, this);
         base.OnModelCreating(builder);
     }
+
+    /// <summary>
+    /// Tenant ativo da instância (scoped). Referenciado pelos Global Query
+    /// Filters — o EF Core converte em parâmetro reavaliado por query.
+    /// </summary>
+    public Guid? CurrentTenantId => _tenant.TenantId;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
