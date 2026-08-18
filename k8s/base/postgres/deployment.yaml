@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clinica-postgres
+  namespace: clinica
+  labels:
+    app: clinica-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clinica-postgres
+  template:
+    metadata:
+      labels:
+        app: clinica-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "clinica"
+            - name: POSTGRES_USER
+              value: "clinica"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: clinica-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: dados
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "clinica"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: dados
+          persistentVolumeClaim:
+            claimName: clinica-postgres-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: clinica-postgres-pvc
+  namespace: clinica
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

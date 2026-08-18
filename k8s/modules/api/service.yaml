@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: clinica-api
+  namespace: clinica
+spec:
+  selector:
+    app: clinica-api
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP

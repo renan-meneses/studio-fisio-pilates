@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clinica-config
+  namespace: clinica
+data:
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_URLS: "http://+:8080"
+  CONNECTIONSTRINGS__CLINICA: "Host=clinica-postgres;Port=5432;Database=clinica;Username=clinica;Password=$(POSTGRES_PASSWORD)"
+  JWT__ISSUER: "clinica-saas-api"
+  JWT__AUDIENCE: "clinica-saas-web"
+  JWT__EXPIRATIONMINUTES: "480"
