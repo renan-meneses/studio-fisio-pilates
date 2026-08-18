@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Base compartilhada: namespace, config, secrets e Postgres.
+# Manifestos de aplicação (api/web) vivem em modules/ e são compostos
+# sobre esta base via kustomization raiz (k8s/kustomization.yaml).
+resources:
+  - namespace.yaml

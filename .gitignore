@@ -1,0 +1,37 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.nupkg
+TestResults/
+
+# Node / Angular
+node_modules/
+dist/
+tmp/
+.angular/
+coverage/
+*.log
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# Docker / env
+.env
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+
+# K8s secrets reais
+k8s/**/*.secret.yaml
+k8s/**/sealed-secret.yaml

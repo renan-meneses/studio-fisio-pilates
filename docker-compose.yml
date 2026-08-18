@@ -1,0 +1,57 @@
+name: clinica-saas
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: clinica-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-clinica}
+      POSTGRES_USER: ${POSTGRES_USER:-clinica}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-clinica_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-clinica} -d ${POSTGRES_DB:-clinica}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./src/backend
+      dockerfile: API/Dockerfile
+    container_name: clinica-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-clinica};Username=${POSTGRES_USER:-clinica};Password=${POSTGRES_PASSWORD:-clinica_dev}"
+      JWT__Issuer: ${JWT_ISSUER:-clinica-api}
+      JWT__Audience: ${JWT_AUDIENCE:-clinica-web}
+      JWT__SecretKey: ${JWT_SECRET_KEY:-dev-secret-key-2d6f4b8a9c1e3d5f7h0j2k4m6n8p0q2s}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: clinica-web
+    environment:
+      API_BASE_URL: ${API_BASE_URL:-http://localhost:8080}
+    ports:
+      - "4200:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
