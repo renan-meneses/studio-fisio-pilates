@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
+import { AgendaPageComponent } from './pages/agenda-page.component';
 
 export const agendaRoutes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'hoje' },
+  { path: '', component: AgendaPageComponent },
 ];
