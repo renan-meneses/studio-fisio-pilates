@@ -70,8 +70,9 @@ npm install && ng serve
 docker compose up --build
 ```
 
-Tenant de exemplo: `X-Tenant-Id: 00000000-0000-0000-0000-000000000001` (seed).
-Credenciais seed: `admin@clinica.com / Admin@123`.
+Tenant de exemplo: `X-Tenant-Id: 00000000-0000-0000-0000-000000000001` (seed
+cria clínica demo, paciente e profissional no primeiro boot dev).
+Usuários são criados pelo onboarding: `POST /api/clinicas/onboarding`.
 
 ## Qualidade
 
