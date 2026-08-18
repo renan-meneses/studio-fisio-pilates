@@ -1,5 +1,8 @@
 import { Routes } from '@angular/router';
+import { FinanceiroPageComponent } from './pages/financeiro-page.component';
+import { ContasPageComponent } from './pages/contas-page.component';
 
 export const financeiroRoutes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'resumo' },
+  { path: '', component: FinanceiroPageComponent },
+  { path: 'contas', component: ContasPageComponent },
 ];
