@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Clinica.API</RootNamespace>
+    <AssemblyName>Clinica.API</AssemblyName>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.10" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Application\Clinica.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\CrossCutting\Clinica.CrossCutting.csproj" />
+    <ProjectReference Include="..\Infrastructure\Persistence\Clinica.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>

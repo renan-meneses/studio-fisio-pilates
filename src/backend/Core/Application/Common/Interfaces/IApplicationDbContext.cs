@@ -1,4 +1,5 @@
 using Clinica.Domain.Entities;
+using ClinicaEntity = Clinica.Domain.Entities.Clinica;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Application.Common.Interfaces;
@@ -9,7 +10,7 @@ namespace Clinica.Application.Common.Interfaces;
 /// </summary>
 public interface IApplicationDbContext
 {
-    DbSet<Clinica> Clinicas { get; }
+    DbSet<ClinicaEntity> Clinicas { get; }
 
     DbSet<Paciente> Pacientes { get; }
 
@@ -30,6 +31,8 @@ public interface IApplicationDbContext
     DbSet<Ponto> Pontos { get; }
 
     DbSet<FolhaSalarial> FolhasSalariais { get; }
+
+    DbSet<Usuario> Usuarios { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

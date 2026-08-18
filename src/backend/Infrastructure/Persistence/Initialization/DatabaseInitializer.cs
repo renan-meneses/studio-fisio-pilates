@@ -1,5 +1,6 @@
 using Clinica.Application.Common.Interfaces;
 using Clinica.Domain.Entities;
+using ClinicaEntity = Clinica.Domain.Entities.Clinica;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Persistence.Initialization;
@@ -17,7 +18,7 @@ public static class DatabaseInitializer
         if (await context.Clinicas.AnyAsync(ct))
             return;
 
-        var clinicaDemo = new Clinica
+        var clinicaDemo = new ClinicaEntity
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
             Nome = "Clínica Demonstração",

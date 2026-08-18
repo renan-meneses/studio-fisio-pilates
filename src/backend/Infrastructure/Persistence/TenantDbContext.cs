@@ -1,6 +1,7 @@
 using Clinica.Application.Common.Interfaces;
 using Clinica.Domain.Common;
 using Clinica.Domain.Entities;
+using ClinicaEntity = Clinica.Domain.Entities.Clinica;
 using Microsoft.EntityFrameworkCore;
 
 namespace Clinica.Persistence;
@@ -25,7 +26,7 @@ public class TenantDbContext : DbContext, IApplicationDbContext
         _tenant = tenant;
     }
 
-    public DbSet<Clinica> Clinicas => Set<Clinica>();
+    public DbSet<ClinicaEntity> Clinicas => Set<ClinicaEntity>();
     public DbSet<Paciente> Pacientes => Set<Paciente>();
     public DbSet<Profissional> Profissionais => Set<Profissional>();
     public DbSet<Agendamento> Agendamentos => Set<Agendamento>();
@@ -36,6 +37,7 @@ public class TenantDbContext : DbContext, IApplicationDbContext
     public DbSet<ContaPagar> ContasPagar => Set<ContaPagar>();
     public DbSet<Ponto> Pontos => Set<Ponto>();
     public DbSet<FolhaSalarial> FolhasSalariais => Set<FolhaSalarial>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

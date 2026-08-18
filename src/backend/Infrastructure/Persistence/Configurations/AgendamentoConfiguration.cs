@@ -1,4 +1,3 @@
-using Clinica.Domain.Common;
 using Clinica.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -40,15 +39,5 @@ internal class AgendamentoConfiguration : IEntityTypeConfiguration<Agendamento>
             .WithOne(p => p.Agendamento)
             .HasForeignKey<Presenca>(p => p.AgendamentoId)
             .OnDelete(DeleteBehavior.Cascade);
-    }
-}
-
-internal static class TenantIndexBuilder
-{
-    public static void AddTenantIndex<TEntity>(EntityTypeBuilder<TEntity> builder, string indexName)
-        where TEntity : class, ITenantEntity
-    {
-        builder.HasIndex(e => new { e.ClinicaId, e.Id })
-            .HasDatabaseName(indexName);
     }
 }
