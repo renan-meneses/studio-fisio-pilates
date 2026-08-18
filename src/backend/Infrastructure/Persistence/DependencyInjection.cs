@@ -12,6 +12,10 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Domínio trabalha com datas locais (fuso do estúdio/BR), sem instante UTC:
+        // mapeia DateTime para "timestamp without time zone" no PostgreSQL.
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
         services.AddScoped<ICurrentTenantService, CurrentTenantService>();
         services.AddScoped<ICurrentTenantAccessor, CurrentTenantAccessor>();
 

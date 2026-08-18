@@ -53,12 +53,19 @@ public static class CustomClaimTypes
 
 public static class ClaimsPrincipalExtensions
 {
-    public static Guid? GetUserId(this ClaimsPrincipal principal) =>
-        Guid.TryParse(principal.FindFirstValue(JwtRegisteredClaimNames.Sub), out var id) ? id : null;
+    /// <summary>Lê o sub com fallback: o handler do ASP.NET Core pode remapear
+    /// "sub" para o URI longo (nameidentifier) quando MapInboundClaims não é desabilitado.</summary>
+    public static Guid? GetUserId(this ClaimsPrincipal principal)
+    {
+        var sub = principal.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                  ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(sub, out var id) ? id : null;
+    }
 
     public static Guid? GetTenantId(this ClaimsPrincipal principal) =>
         Guid.TryParse(principal.FindFirstValue(CustomClaimTypes.TenantId), out var id) ? id : null;
 
     public static string? GetEmail(this ClaimsPrincipal principal) =>
-        principal.FindFirstValue(JwtRegisteredClaimNames.Email);
+        principal.FindFirstValue(JwtRegisteredClaimNames.Email)
+        ?? principal.FindFirstValue(ClaimTypes.Email);
 }

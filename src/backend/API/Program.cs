@@ -31,11 +31,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-// Resolve X-Tenant-Id (header) e valida contra o claim tenant_id do JWT.
-app.UseMiddleware<TenantHeaderMiddleware>();
-
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Resolve X-Tenant-Id (header) e valida contra o claim tenant_id do JWT.
+// Executado APÓS UseAuthentication para que o principal autenticado
+// esteja disponível na validação de divergência de tenant.
+app.UseMiddleware<TenantHeaderMiddleware>();
 
 app.MapControllers();
 app.MapHealthChecks("/health");
