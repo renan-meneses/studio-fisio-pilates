@@ -19,6 +19,21 @@ public sealed class RhController : ControllerBase
         _mediator = mediator;
     }
 
+    [HttpGet("profissionais")]
+    public async Task<ActionResult<IReadOnlyList<ProfissionalResumoResponse>>> ListarProfissionais(
+        [FromQuery] string? termo,
+        CancellationToken ct)
+    {
+        return Ok(await _mediator.Send(new ListarProfissionaisQuery(termo), ct));
+    }
+
+    [HttpPost("profissionais")]
+    public async Task<ActionResult<Guid>> CriarProfissional(CriarProfissionalCommand command, CancellationToken ct)
+    {
+        var id = await _mediator.Send(command, ct);
+        return CreatedAtAction(nameof(ListarProfissionais), new { }, new { id });
+    }
+
     [HttpGet("pontos")]
     public async Task<ActionResult<IReadOnlyList<PontoResponse>>> ListarPontos(
         [FromQuery] Guid? profissionalId,

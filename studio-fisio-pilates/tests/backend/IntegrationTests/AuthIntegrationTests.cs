@@ -57,4 +57,28 @@ public sealed class AuthIntegrationTests : IClassFixture<ResetDb>
         claims.GetProperty("email").GetString().Should().Be(seed.Email);
         claims.GetProperty("authenticated").GetBoolean().Should().BeTrue();
     }
+
+    [Fact]
+    public async Task Login_sem_header_descobre_tenant_da_clinica()
+    {
+        var seed = await _fixture.SeedClinicaAsync("Clínica Tenant Discovery");
+        var client = _fixture.CreateClient();
+
+        var resposta = await client.PostAsJsonAsync("/api/auth/login",
+            new { email = seed.Email, senha = seed.Senha });
+        resposta.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var corpo = await resposta.Content.ReadFromJsonAsync<JsonElement>();
+        corpo.GetProperty("tenantId").GetString().Should().Be(seed.TenantHeaderValue);
+        corpo.GetProperty("tenantNome").GetString().Should().Be("Clínica Tenant Discovery");
+
+        var token = corpo.GetProperty("accessToken").GetString()!;
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        client.DefaultRequestHeaders.Add("X-Tenant-Id", seed.TenantHeaderValue);
+
+        var me = await client.GetAsync("/api/auth/me");
+        me.StatusCode.Should().Be(HttpStatusCode.OK);
+        var claims = await me.Content.ReadFromJsonAsync<JsonElement>();
+        claims.GetProperty("tenantId").GetString().Should().Be(seed.TenantHeaderValue);
+    }
 }

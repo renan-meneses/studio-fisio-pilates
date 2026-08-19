@@ -34,5 +34,15 @@ public interface IApplicationDbContext
 
     DbSet<Usuario> Usuarios { get; }
 
+    DbSet<Plano> Planos { get; }
+
+    DbSet<Servico> Servicos { get; }
+
+    DbSet<PlanoServico> PlanoServicos { get; }
+
+    DbSet<Turma> Turmas { get; }
+
+    DbSet<TurmaHorario> TurmaHorarios { get; }
+
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

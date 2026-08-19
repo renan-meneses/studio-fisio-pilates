@@ -134,7 +134,7 @@ type Aba = 'dados' | 'anamneses' | 'evolucoes';
       color: var(--clin-text-muted);
       cursor: pointer;
       border-bottom: 2px solid transparent;
-      &--active { color: var(--clin-primary); border-bottom-color: var(--clin-primary); }
+      &.aba--active { color: var(--clin-primary); border-bottom-color: var(--clin-primary); }
     }
     .dados {
       display: grid;

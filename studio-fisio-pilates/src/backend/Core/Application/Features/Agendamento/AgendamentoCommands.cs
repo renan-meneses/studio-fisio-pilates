@@ -14,6 +14,8 @@ public sealed record CriarAgendamentoCommand(
     DateTime DataHoraInicio,
     DateTime DataHoraFim,
     TipoSessao TipoSessao,
+    TipoAula TipoAula = TipoAula.Individual,
+    Guid? TurmaId = null,
     decimal ValorSessao = 0,
     string? Observacoes = null) : IAgendamentoRequest;
 
@@ -24,9 +26,13 @@ public sealed record AtualizarAgendamentoCommand(
     DateTime DataHoraInicio,
     DateTime DataHoraFim,
     TipoSessao TipoSessao,
+    TipoAula TipoAula = TipoAula.Individual,
+    Guid? TurmaId = null,
     string? Observacoes = null) : IAgendamentoRequest;
 
 public sealed record CancelarAgendamentoCommand(Guid Id, string Motivo) : IRequest;
+
+public sealed record ConfirmarAgendamentoCommand(Guid Id) : IRequest;
 
 public sealed record RegistrarPresencaCommand(Guid AgendamentoId, StatusAgendamento Resultado) : IRequest<Guid>;
 
@@ -40,6 +46,10 @@ public interface IAgendamentoRequest : IRequest<Guid>
     DateTime DataHoraInicio { get; }
 
     DateTime DataHoraFim { get; }
+
+    TipoSessao TipoSessao { get; }
+
+    Guid? TurmaId { get; }
 }
 
 /// <summary>
@@ -68,6 +78,8 @@ public sealed class CriarAgendamentoCommandHandler : IRequestHandler<CriarAgenda
             DataHoraInicio = request.DataHoraInicio,
             DataHoraFim = request.DataHoraFim,
             TipoSessao = request.TipoSessao,
+            TipoAula = request.TipoAula,
+            TurmaId = request.TurmaId,
             ValorSessao = request.ValorSessao,
             Observacoes = request.Observacoes,
         };
@@ -86,6 +98,17 @@ public sealed class CriarAgendamentoCommandHandler : IRequestHandler<CriarAgenda
     {
         if (request.DataHoraInicio >= request.DataHoraFim)
             throw new BusinessRuleException("A janela de horário é inválida (início deve ser anterior ao fim).");
+
+        if (request.TurmaId is not null)
+        {
+            var turma = await db.Turmas
+                .FirstOrDefaultAsync(t => t.Id == request.TurmaId, ct)
+                ?? throw new BusinessRuleException("Turma informada não existe.");
+
+            if (turma.TipoSessao != request.TipoSessao)
+                throw new BusinessRuleException(
+                    $"A turma '{turma.Nome}' não é do tipo de sessão selecionado.");
+        }
 
         var sobreposto = await db.Agendamentos.AnyAsync(
             a => a.Id != atualId
@@ -128,6 +151,8 @@ public sealed class AtualizarAgendamentoCommandHandler
         agendamento.DataHoraInicio = request.DataHoraInicio;
         agendamento.DataHoraFim = request.DataHoraFim;
         agendamento.TipoSessao = request.TipoSessao;
+        agendamento.TipoAula = request.TipoAula;
+        agendamento.TurmaId = request.TurmaId;
         agendamento.Observacoes = request.Observacoes;
 
         await _db.SaveChangesAsync(ct);
@@ -158,6 +183,29 @@ public sealed class CancelarAgendamentoCommandHandler : IRequestHandler<Cancelar
             ? $"Cancelado: {request.Motivo}"
             : $"{agendamento.Observacoes} — Cancelado: {request.Motivo}";
 
+        await _db.SaveChangesAsync(ct);
+    }
+}
+
+public sealed class ConfirmarAgendamentoCommandHandler : IRequestHandler<ConfirmarAgendamentoCommand>
+{
+    private readonly IApplicationDbContext _db;
+
+    public ConfirmarAgendamentoCommandHandler(IApplicationDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task Handle(ConfirmarAgendamentoCommand request, CancellationToken ct)
+    {
+        var agendamento = await _db.Agendamentos
+            .FirstOrDefaultAsync(a => a.Id == request.Id, ct)
+            ?? throw new NotFoundException("Agendamento não encontrado.");
+
+        if (agendamento.Status is not (StatusAgendamento.Agendado or StatusAgendamento.Confirmado))
+            throw new BusinessRuleException("Só é possível confirmar agendamentos ativos.");
+
+        agendamento.Status = StatusAgendamento.Confirmado;
         await _db.SaveChangesAsync(ct);
     }
 }

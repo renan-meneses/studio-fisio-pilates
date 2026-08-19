@@ -19,6 +19,21 @@ public sealed class ProntuariosController : ControllerBase
         _mediator = mediator;
     }
 
+    [HttpGet("pacientes")]
+    public async Task<ActionResult<IReadOnlyList<PacienteResumoResponse>>> ListarPacientes(
+        [FromQuery] string? termo,
+        CancellationToken ct)
+    {
+        return Ok(await _mediator.Send(new ListarPacientesQuery(termo), ct));
+    }
+
+    [HttpPost("pacientes")]
+    public async Task<ActionResult<Guid>> CriarPaciente(CriarPacienteCommand command, CancellationToken ct)
+    {
+        var id = await _mediator.Send(command, ct);
+        return CreatedAtAction(nameof(ListarPacientes), new { }, new { id });
+    }
+
     [HttpGet("paciente/{pacienteId:guid}")]
     public Task<ActionResult<ProntuarioResponse>> ObterPorPaciente(Guid pacienteId, CancellationToken ct) =>
         ResponderAsync(new ObterProntuarioPorPacienteQuery(pacienteId), ct);

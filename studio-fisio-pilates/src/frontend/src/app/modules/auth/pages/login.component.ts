@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, Credenciais } from '../../../core/services/auth.service';
 import { TenantService } from '../../../core/services/tenant.service';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'clin-login',
@@ -67,6 +68,7 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly tenant = inject(TenantService);
+  private readonly theme = inject(ThemeService);
   private readonly router = inject(Router);
 
   readonly carregando = signal(false);
@@ -86,6 +88,7 @@ export class LoginComponent {
     this.auth.login(this.form.getRawValue() as Credenciais).subscribe({
       next: login => {
         this.tenant.setTenant({ tenantId: login.tenantId, tenantNome: login.tenantNome });
+        this.theme.sincronizar(login.tema);
         this.carregando.set(false);
         void this.router.navigate(['/agenda']);
       },

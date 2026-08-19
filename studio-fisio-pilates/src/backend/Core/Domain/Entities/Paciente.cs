@@ -9,7 +9,9 @@ public class Paciente : BaseEntity, ITenantEntity, IAggregateRoot
 
     public string Nome { get; set; } = string.Empty;
 
-    public string CPF { get; set; } = string.Empty;
+    public string? Sobrenome { get; set; }
+
+    public string? CPF { get; set; }
 
     public DateTime DataNascimento { get; set; }
 
@@ -28,4 +30,8 @@ public class Paciente : BaseEntity, ITenantEntity, IAggregateRoot
     public StatusPaciente Status { get; set; } = StatusPaciente.Ativo;
 
     public DateTime? DataPrimeiraSessao { get; set; }
+
+    public Guid? PlanoId { get; set; }
+
+    public Plano? Plano { get; set; }
 }

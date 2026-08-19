@@ -2,6 +2,7 @@ using Clinica.Application.Common.Exceptions;
 using Clinica.Application.Common.Interfaces;
 using Clinica.Domain.Entities;
 using Clinica.Domain.Enums;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,53 @@ public sealed record RegistrarPontoCommand(
     TimeSpan? AlmocoInicio,
     TimeSpan? AlmocoFim,
     TimeSpan? HorasExtras) : IRequest<Guid>;
+
+public sealed record CriarProfissionalCommand(
+    string Nome,
+    string? Cpf,
+    string Especialidades,
+    string? Telefone,
+    string? Email) : IRequest<Guid>;
+
+public sealed class CriarProfissionalCommandValidator : FluentValidation.AbstractValidator<CriarProfissionalCommand>
+{
+    public CriarProfissionalCommandValidator()
+    {
+        RuleFor(r => r.Nome).NotEmpty().MaximumLength(150);
+        RuleFor(r => r.Cpf).MaximumLength(11);
+        RuleFor(r => r.Especialidades).MaximumLength(300);
+        RuleFor(r => r.Email).EmailAddress().When(r => !string.IsNullOrWhiteSpace(r.Email));
+        RuleFor(r => r.Telefone).MaximumLength(20);
+    }
+}
+
+public sealed class CriarProfissionalCommandHandler : IRequestHandler<CriarProfissionalCommand, Guid>
+{
+    private readonly IApplicationDbContext _db;
+
+    public CriarProfissionalCommandHandler(IApplicationDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<Guid> Handle(CriarProfissionalCommand request, CancellationToken ct)
+    {
+        var profissional = new Profissional
+        {
+            Nome = request.Nome,
+            CPF = request.Cpf ?? string.Empty,
+            Especialidades = request.Especialidades,
+            Telefone = request.Telefone,
+            Email = request.Email,
+            Ativo = true,
+        };
+
+        await _db.Profissionais.AddAsync(profissional, ct);
+        await _db.SaveChangesAsync(ct);
+
+        return profissional.Id;
+    }
+}
 
 public sealed record CalcularFolhaCommand(
     Guid ProfissionalId,

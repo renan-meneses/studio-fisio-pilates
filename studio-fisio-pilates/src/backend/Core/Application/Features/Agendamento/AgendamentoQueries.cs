@@ -23,12 +23,19 @@ public sealed class ListarAgendamentosQueryHandler
         var query = _db.Agendamentos
             .Include(a => a.Paciente)
             .Include(a => a.Profissional)
+            .Include(a => a.Turma)
             .AsNoTracking();
 
         if (request.De.HasValue)
             query = query.Where(a => a.DataHoraInicio >= request.De.Value);
         if (request.Ate.HasValue)
-            query = query.Where(a => a.DataHoraFim <= request.Ate.Value);
+        {
+            // "ate" com hora zerada (ex.: ?ate=2026-08-19) significa fim do dia.
+            var ate = request.Ate.Value.TimeOfDay == TimeSpan.Zero
+                ? request.Ate.Value.Date.AddDays(1).AddTicks(-1)
+                : request.Ate.Value;
+            query = query.Where(a => a.DataHoraFim <= ate);
+        }
         if (request.ProfissionalId.HasValue)
             query = query.Where(a => a.ProfissionalId == request.ProfissionalId.Value);
         if (request.Status.HasValue)
@@ -56,6 +63,7 @@ public sealed class ObterAgendamentoQueryHandler : IRequestHandler<ObterAgendame
         var agendamento = await _db.Agendamentos
             .Include(a => a.Paciente)
             .Include(a => a.Profissional)
+            .Include(a => a.Turma)
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == request.Id, ct)
             ?? throw new NotFoundException("Agendamento não encontrado.");

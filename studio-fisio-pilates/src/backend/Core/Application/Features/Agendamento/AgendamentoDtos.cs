@@ -12,6 +12,9 @@ public sealed record AgendamentoResponse(
     DateTime DataHoraInicio,
     DateTime DataHoraFim,
     TipoSessao TipoSessao,
+    TipoAula TipoAula,
+    Guid? TurmaId,
+    string? TurmaNome,
     StatusAgendamento Status,
     decimal ValorSessao,
     string? Observacoes);

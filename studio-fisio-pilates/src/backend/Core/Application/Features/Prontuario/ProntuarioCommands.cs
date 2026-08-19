@@ -11,6 +11,23 @@ namespace Clinica.Application.Features.Prontuario;
 
 public sealed record AbrirProntuarioCommand(Guid PacienteId) : IRequest<Guid>;
 
+public sealed record CriarPacienteCommand(
+    string Nome,
+    string? Cpf,
+    string? Telefone,
+    string? Email) : IRequest<Guid>;
+
+public sealed class CriarPacienteCommandValidator : FluentValidation.AbstractValidator<CriarPacienteCommand>
+{
+    public CriarPacienteCommandValidator()
+    {
+        RuleFor(r => r.Nome).NotEmpty().MaximumLength(150);
+        RuleFor(r => r.Cpf).MaximumLength(11);
+        RuleFor(r => r.Email).EmailAddress().When(r => !string.IsNullOrWhiteSpace(r.Email));
+        RuleFor(r => r.Telefone).MaximumLength(20);
+    }
+}
+
 public sealed record AdicionarEvolucaoCommand(
     Guid ProntuarioId,
     Guid ProfissionalId,
@@ -60,6 +77,33 @@ public sealed class AbrirProntuarioCommandHandler : IRequestHandler<AbrirProntua
         await _db.SaveChangesAsync(ct);
 
         return prontuario.Id;
+    }
+}
+
+public sealed class CriarPacienteCommandHandler : IRequestHandler<CriarPacienteCommand, Guid>
+{
+    private readonly IApplicationDbContext _db;
+
+    public CriarPacienteCommandHandler(IApplicationDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<Guid> Handle(CriarPacienteCommand request, CancellationToken ct)
+    {
+        var paciente = new Paciente
+        {
+            Nome = request.Nome,
+            CPF = string.IsNullOrWhiteSpace(request.Cpf) ? null : request.Cpf,
+            Telefone = request.Telefone,
+            Email = request.Email,
+            Status = StatusPaciente.Ativo,
+        };
+
+        await _db.Pacientes.AddAsync(paciente, ct);
+        await _db.SaveChangesAsync(ct);
+
+        return paciente.Id;
     }
 }
 

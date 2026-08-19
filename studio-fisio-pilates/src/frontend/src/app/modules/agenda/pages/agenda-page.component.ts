@@ -3,12 +3,13 @@ import { PageHeaderComponent } from '../../../shared/components/page-header.comp
 import { EmptyStateComponent } from '../../../shared/components/empty-state.component';
 import { AgendamentoFormComponent } from '../components/agendamento-form.component';
 import { AgendaService } from '../services/agenda.service';
-import { Agendamento } from '../models/agendamento.model';
+import { Agendamento, rotuloTipoAula, rotuloTipoSessao } from '../models/agendamento.model';
 
 const STATUS_BADGE: Record<string, string> = {
   Agendado: 'badge--muted',
   Confirmado: 'badge--info',
-  Concluido: 'badge--success',
+  Realizado: 'badge--success',
+  Faltou: 'badge--danger',
   Cancelado: 'badge--danger',
 };
 
@@ -50,26 +51,30 @@ const STATUS_BADGE: Record<string, string> = {
             <tr>
               <th>Horário</th>
               <th>Paciente</th>
-              <th>Serviço</th>
+              <th>Profissional</th>
+              <th>Sessão</th>
+              <th>Aula</th>
+              <th>Turma</th>
               <th>Status</th>
-              <th>Presença</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
             @for (ag of agendamentos(); track ag.id) {
               <tr>
-                <td>{{ ag.horaInicio }} – {{ ag.horaFim }}</td>
+                <td>{{ horarioDe(ag) }}</td>
                 <td>{{ ag.pacienteNome }}</td>
-                <td>{{ ag.servicoNome ?? '—' }}</td>
-                <td><span class="badge {{ badgeDe(ag.status) }}">{{ ag.status }}</span></td>
+                <td>{{ ag.profissionalNome }}</td>
+                <td>{{ rotuloTipoSessao(ag.tipoSessao) }}</td>
+                <td>{{ rotuloTipoAula(ag.tipoAula) }}</td>
                 <td>
-                  @if (ag.presencaRegistrada) {
-                    <span class="badge badge--success">Presente</span>
+                  @if (ag.turmaNome) {
+                    <span class="badge badge--info">{{ ag.turmaNome }}</span>
                   } @else {
-                    <span class="badge badge--muted">—</span>
+                    <span>—</span>
                   }
                 </td>
+                <td><span class="badge {{ badgeDe(ag.status) }}">{{ ag.status }}</span></td>
                 <td>
                   <div class="agenda__actions">
                     @if (ag.status === 'Agendado' || ag.status === 'Confirmado') {
@@ -97,9 +102,10 @@ const STATUS_BADGE: Record<string, string> = {
       border-radius: 8px;
       font: inherit;
       background: var(--clin-surface);
+      color: var(--clin-text);
     }
     .agenda__form { margin-bottom: 1rem; }
-    .agenda__actions { display: flex; gap: 0.4rem; }
+    .agenda__actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
     .agenda__hint { color: var(--clin-text-muted); text-align: center; padding: 1rem 0; }
   `,
 })
@@ -111,12 +117,29 @@ export class AgendaPageComponent {
   readonly carregando = signal(false);
   readonly mostrarForm = signal(false);
 
+  readonly rotuloTipoSessao = rotuloTipoSessao;
+  readonly rotuloTipoAula = rotuloTipoAula;
+
   constructor() {
     this.recarregar();
   }
 
   hoje(): string {
     return new Date().toISOString().slice(0, 10);
+  }
+
+  horarioDe(ag: Agendamento): string {
+    const inicio = new Date(ag.dataHoraInicio).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    const fim = new Date(ag.dataHoraFim).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    return `${inicio} – ${fim}`;
   }
 
   mudarData(evento: Event): void {
@@ -156,6 +179,6 @@ export class AgendaPageComponent {
     if (motivo === null) {
       return;
     }
-    this.agenda.cancelar(ag.id, { motivo }).subscribe(() => this.recarregar());
+    this.agenda.cancelar(ag.id, motivo).subscribe(() => this.recarregar());
   }
 }

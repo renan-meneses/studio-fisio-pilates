@@ -16,6 +16,43 @@ public sealed record PontoResponse(
     TimeSpan HorasTrabalhadas,
     TimeSpan? HorasExtras);
 
+public sealed record ProfissionalResumoResponse(
+    Guid Id,
+    string Nome,
+    string Especialidades,
+    bool Ativo);
+
+public sealed record ListarProfissionaisQuery(string? Termo) : IRequest<IReadOnlyList<ProfissionalResumoResponse>>;
+
+public sealed class ListarProfissionaisQueryHandler
+    : IRequestHandler<ListarProfissionaisQuery, IReadOnlyList<ProfissionalResumoResponse>>
+{
+    private readonly IApplicationDbContext _db;
+
+    public ListarProfissionaisQueryHandler(IApplicationDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<IReadOnlyList<ProfissionalResumoResponse>> Handle(
+        ListarProfissionaisQuery request,
+        CancellationToken ct)
+    {
+        var query = _db.Profissionais.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(request.Termo))
+            query = query.Where(p => p.Nome.ToLower().Contains(request.Termo.ToLower()));
+
+        return (await query.OrderBy(p => p.Nome).ToListAsync(ct))
+            .Select(p => new ProfissionalResumoResponse(
+                p.Id,
+                p.Nome,
+                p.Especialidades,
+                p.Ativo))
+            .ToList();
+    }
+}
+
 public sealed record FolhaResponse(
     Guid Id,
     Guid ProfissionalId,

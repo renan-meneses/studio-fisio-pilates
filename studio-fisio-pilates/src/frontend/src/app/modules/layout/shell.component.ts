@@ -3,6 +3,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { TenantService } from '../../core/services/tenant.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 interface NavItem {
   rota: string;
@@ -12,6 +13,10 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { rota: '/agenda', rotulo: 'Agenda', icone: '📅' },
+  { rota: '/alunos', rotulo: 'Alunos', icone: '🎓' },
+  { rota: '/turmas', rotulo: 'Turmas', icone: '🧘' },
+  { rota: '/planos', rotulo: 'Planos', icone: '💳' },
+  { rota: '/servicos', rotulo: 'Serviços', icone: '🧩' },
   { rota: '/prontuarios', rotulo: 'Prontuários', icone: '📋' },
   { rota: '/financeiro', rotulo: 'Financeiro', icone: '💰' },
   { rota: '/financeiro/contas', rotulo: 'Contas a pagar', icone: '🧾' },
@@ -47,6 +52,13 @@ const NAV: NavItem[] = [
             {{ tenant()?.tenantNome ?? 'Sem tenant' }}
           </div>
           <div class="shell__user">
+            <button
+              class="btn btn--outline shell__tema"
+              (click)="alternarTema()"
+              [title]="theme.tema() === 'Escuro' ? 'Modo claro' : 'Modo escuro'"
+            >
+              {{ theme.tema() === 'Escuro' ? '☀️' : '🌙' }}
+            </button>
             <span>{{ usuario }}</span>
             <button class="btn btn--outline" (click)="sair()">Sair</button>
           </div>
@@ -70,6 +82,7 @@ const NAV: NavItem[] = [
       position: sticky;
       top: 0;
       height: 100vh;
+      border-right: 1px solid var(--clin-border);
     }
     .shell__brand { font-size: 1.1rem; font-weight: 800; color: #fff; padding: 0 0.5rem; }
     .shell__brand span { color: var(--clin-accent); }
@@ -85,7 +98,7 @@ const NAV: NavItem[] = [
       transition: background 0.15s ease;
 
       &:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
-      &--active { background: var(--clin-primary); color: #fff; }
+      &.shell__link--active { background: var(--clin-primary); color: #fff; }
     }
     .shell__main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     .shell__topbar {
@@ -106,6 +119,7 @@ export class ShellComponent {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly tenantService = inject(TenantService);
+  readonly theme = inject(ThemeService);
 
   readonly nav = NAV;
   readonly tenant = this.tenantService.tenant;
@@ -126,5 +140,12 @@ export class ShellComponent {
   sair(): void {
     this.auth.logout();
     void this.router.navigate(['/login']);
+  }
+
+  alternarTema(): void {
+    const novo = this.theme.alternar();
+    this.auth.atualizarTema(novo).subscribe({
+      error: () => console.warn('Não foi possível persistir o tema no usuário.'),
+    });
   }
 }

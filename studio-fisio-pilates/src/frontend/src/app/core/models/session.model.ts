@@ -6,6 +6,7 @@ export interface LoginResponse {
   usuarioId: string;
   nome: string;
   papel: string;
+  tema: 'Claro' | 'Escuro';
 }
 
 export interface DecodedToken {
@@ -37,7 +38,7 @@ export class SessionStore {
     );
     localStorage.setItem(
       STORAGE_KEYS.user,
-      JSON.stringify({ usuarioId: login.usuarioId, nome: login.nome, papel: login.papel }),
+      JSON.stringify({ usuarioId: login.usuarioId, nome: login.nome, papel: login.papel, tema: login.tema }),
     );
   }
 
@@ -53,6 +54,15 @@ export class SessionStore {
   static userName(): string | null {
     const raw = localStorage.getItem(STORAGE_KEYS.user);
     return raw ? ((JSON.parse(raw) as { nome: string }).nome) : null;
+  }
+
+  static userTema(): 'Claro' | 'Escuro' | null {
+    const raw = localStorage.getItem(STORAGE_KEYS.user);
+    if (!raw) {
+      return null;
+    }
+    const tema = (JSON.parse(raw) as { tema?: string }).tema;
+    return tema === 'Escuro' ? 'Escuro' : tema === 'Claro' ? 'Claro' : null;
   }
 
   static clear(): void {

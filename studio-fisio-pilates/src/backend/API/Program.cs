@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Clinica.Application;
 using Clinica.API.Middlewares;
 using Clinica.CrossCutting;
@@ -12,11 +13,31 @@ builder.Services
     .AddPersistence(builder.Configuration)
     .AddCrossCutting(builder.Configuration);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter(
+                allowIntegerValues: true));
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddHealthChecks();
+
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ClinicaWeb", policy =>
+        policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyMethod()
+            .WithHeaders("Content-Type", "Authorization", "X-Tenant-Id")
+            .AllowCredentials());
+});
 
 var app = builder.Build();
 
@@ -33,6 +54,8 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseCors("ClinicaWeb");
 
 // Resolve X-Tenant-Id (header) e valida contra o claim tenant_id do JWT.
 // Executado APÓS UseAuthentication para que o principal autenticado

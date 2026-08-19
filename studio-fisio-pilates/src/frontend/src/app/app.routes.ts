@@ -26,6 +26,22 @@ export const routes: Routes = [
         path: 'rh',
         loadChildren: () => import('./modules/rh/rh.routes').then(m => m.rhRoutes),
       },
+      {
+        path: 'planos',
+        loadChildren: () => import('./modules/planos/planos.routes').then(m => m.planosRoutes),
+      },
+      {
+        path: 'servicos',
+        loadChildren: () => import('./modules/servicos/servicos.routes').then(m => m.servicosRoutes),
+      },
+      {
+        path: 'alunos',
+        loadChildren: () => import('./modules/alunos/alunos.routes').then(m => m.alunosRoutes),
+      },
+      {
+        path: 'turmas',
+        loadChildren: () => import('./modules/turmas/turmas.routes').then(m => m.turmasRoutes),
+      },
     ],
   },
   { path: '**', redirectTo: 'agenda' },

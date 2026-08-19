@@ -20,6 +20,8 @@ public class Usuario : BaseEntity, ITenantEntity
     public bool Ativo { get; set; } = true;
 
     public DateTime? UltimoLogin { get; set; }
+
+    public TemaPreferencia Tema { get; set; } = TemaPreferencia.Claro;
 }
 
 public enum PapelUsuario
@@ -28,4 +30,10 @@ public enum PapelUsuario
     Atendente = 2,
     Financeiro = 3,
     Profissional = 4,
+}
+
+public enum TemaPreferencia
+{
+    Claro = 1,
+    Escuro = 2,
 }

@@ -21,6 +21,12 @@ public class Agendamento : BaseEntity, ITenantEntity, IAggregateRoot
 
     public TipoSessao TipoSessao { get; set; } = TipoSessao.PilatesSolo;
 
+    public TipoAula TipoAula { get; set; } = TipoAula.Individual;
+
+    public Guid? TurmaId { get; set; }
+
+    public Turma? Turma { get; set; }
+
     public StatusAgendamento Status { get; set; } = StatusAgendamento.Agendado;
 
     /// <summary>Valor cobrado na sessão (0 quando incluso na mensalidade).</summary>

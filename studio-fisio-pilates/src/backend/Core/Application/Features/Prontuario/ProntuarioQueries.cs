@@ -16,6 +16,43 @@ public sealed record EvolucaoResponse(
     string? Conduta,
     string? Observacoes);
 
+public sealed record PacienteResumoResponse(
+    Guid Id,
+    string Nome,
+    string? Telefone,
+    bool Ativo);
+
+public sealed record ListarPacientesQuery(string? Termo) : IRequest<IReadOnlyList<PacienteResumoResponse>>;
+
+public sealed class ListarPacientesQueryHandler
+    : IRequestHandler<ListarPacientesQuery, IReadOnlyList<PacienteResumoResponse>>
+{
+    private readonly IApplicationDbContext _db;
+
+    public ListarPacientesQueryHandler(IApplicationDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<IReadOnlyList<PacienteResumoResponse>> Handle(
+        ListarPacientesQuery request,
+        CancellationToken ct)
+    {
+        var query = _db.Pacientes.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(request.Termo))
+            query = query.Where(p => p.Nome.ToLower().Contains(request.Termo.ToLower()));
+
+        return (await query.OrderBy(p => p.Nome).ToListAsync(ct))
+            .Select(p => new PacienteResumoResponse(
+                p.Id,
+                p.Nome,
+                p.Telefone,
+                p.Status == StatusPaciente.Ativo))
+            .ToList();
+    }
+}
+
 public sealed record ProntuarioResponse(
     Guid Id,
     Guid PacienteId,

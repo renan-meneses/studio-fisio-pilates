@@ -19,7 +19,7 @@ public sealed class AuthController : ControllerBase
         _mediator = mediator;
     }
 
-    /// <summary>Autentica usuário do tenant (header X-Tenant-Id) e emite JWT.</summary>
+    /// <summary>Autentica usuário e descobre o tenant da clínica no retorno (tenantId/tenantNome).</summary>
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<ActionResult<LoginResponse>> Login(LoginCommand command, CancellationToken ct)
@@ -40,5 +40,13 @@ public sealed class AuthController : ControllerBase
             tenantId = user.GetTenantId(),
             authenticated = user.Identity?.IsAuthenticated ?? false,
         });
+    }
+
+    /// <summary>Atualiza a preferência de tema (Claro/Escuro) do usuário autenticado.</summary>
+    [HttpPatch("tema")]
+    public async Task<IActionResult> AtualizarTema(AtualizarTemaCommand command, CancellationToken ct)
+    {
+        await _mediator.Send(command with { UsuarioId = User.GetUserId() ?? Guid.Empty }, ct);
+        return NoContent();
     }
 }

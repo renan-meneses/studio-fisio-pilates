@@ -26,6 +26,10 @@ export class AuthService {
     SessionStore.clear();
   }
 
+  atualizarTema(tema: 'Claro' | 'Escuro'): Observable<void> {
+    return this.http.patch<void>(`${environment.apiUrl}/auth/tema`, { tema });
+  }
+
   isAuthenticated(): boolean {
     return SessionStore.token() !== null;
   }

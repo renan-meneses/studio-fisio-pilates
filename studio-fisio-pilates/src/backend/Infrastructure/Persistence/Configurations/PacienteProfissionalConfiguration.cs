@@ -20,12 +20,18 @@ internal class PacienteConfiguration : IEntityTypeConfiguration<Paciente>
             .HasDatabaseName("IX_pacientes_tenant_nome");
 
         builder.Property(p => p.Nome).HasMaxLength(150).IsRequired();
-        builder.Property(p => p.CPF).HasMaxLength(11).IsRequired();
+        builder.Property(p => p.Sobrenome).HasMaxLength(150);
+        builder.Property(p => p.CPF).HasMaxLength(11);
         builder.Property(p => p.Telefone).HasMaxLength(20);
         builder.Property(p => p.Email).HasMaxLength(120);
         builder.Property(p => p.Endereco).HasMaxLength(255);
         builder.Property(p => p.Indicacao).HasMaxLength(255);
         builder.Property(p => p.Observacoes).HasMaxLength(1000);
+
+        builder.HasOne(p => p.Plano)
+            .WithMany()
+            .HasForeignKey(p => p.PlanoId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 

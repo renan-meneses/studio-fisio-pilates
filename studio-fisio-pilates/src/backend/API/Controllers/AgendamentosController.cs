@@ -58,6 +58,13 @@ public sealed class AgendamentosController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("{id:guid}/confirmar")]
+    public async Task<IActionResult> Confirmar(Guid id, CancellationToken ct)
+    {
+        await _mediator.Send(new ConfirmarAgendamentoCommand(id), ct);
+        return NoContent();
+    }
+
     [HttpPost("{id:guid}/presenca")]
     public async Task<ActionResult<Guid>> RegistrarPresenca(Guid id, RegistrarPresencaCommand command, CancellationToken ct)
     {

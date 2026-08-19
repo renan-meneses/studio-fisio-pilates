@@ -39,6 +39,14 @@ public enum TipoSessao
     Domiciliar = 6,
 }
 
+/// <summary>Forma de contratação da aula: experimental, inclusa no plano ou avulsa/individual.</summary>
+public enum TipoAula
+{
+    Experimental = 1,
+    Plano = 2,
+    Individual = 3,
+}
+
 public enum StatusPresenca
 {
     Presente = 1,

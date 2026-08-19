@@ -20,5 +20,6 @@ internal class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
         builder.Property(u => u.Email).HasMaxLength(120).IsRequired();
         builder.Property(u => u.SenhaHash).HasMaxLength(200).IsRequired();
         builder.Property(u => u.Papel).HasConversion<string>().HasMaxLength(24);
+        builder.Property(u => u.Tema).HasConversion<string>().HasMaxLength(12);
     }
 }

@@ -21,6 +21,8 @@ internal class AgendamentoConfiguration : IEntityTypeConfiguration<Agendamento>
 
         builder.Property(a => a.TipoSessao).HasConversion<string>().HasMaxLength(32);
 
+        builder.Property(a => a.TipoAula).HasConversion<string>().HasMaxLength(24);
+
         builder.Property(a => a.Status).HasConversion<string>().HasMaxLength(24);
 
         builder.Property(a => a.ValorSessao).HasPrecision(18, 2);
@@ -33,6 +35,11 @@ internal class AgendamentoConfiguration : IEntityTypeConfiguration<Agendamento>
         builder.HasOne(a => a.Profissional)
             .WithMany()
             .HasForeignKey(a => a.ProfissionalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(a => a.Turma)
+            .WithMany()
+            .HasForeignKey(a => a.TurmaId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(a => a.Presenca)

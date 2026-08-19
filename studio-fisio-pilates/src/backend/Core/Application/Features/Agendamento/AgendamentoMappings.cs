@@ -13,6 +13,9 @@ public static class AgendamentoMappings
         a.DataHoraInicio,
         a.DataHoraFim,
         a.TipoSessao,
+        a.TipoAula,
+        a.TurmaId,
+        a.Turma?.Nome,
         a.Status,
         a.ValorSessao,
         a.Observacoes);

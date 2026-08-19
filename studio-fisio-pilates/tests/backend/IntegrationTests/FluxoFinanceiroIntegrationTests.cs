@@ -46,7 +46,7 @@ public sealed class FluxoFinanceiroIntegrationTests : IClassFixture<ResetDb>
         var mensalidades = await lista.Content.ReadFromJsonAsync<JsonElement>();
         mensalidades.GetArrayLength().Should().Be(1);
         mensalidades[0].GetProperty("id").GetString().Should().Be(mensalidadeId);
-        mensalidades[0].GetProperty("status").GetInt32().Should().Be(1, "pendente");
+        mensalidades[0].GetProperty("status").GetString().Should().Be("Pendente");
 
         var pagamento = await client.PostAsync($"/api/mensalidades/{mensalidadeId}/pagar", null);
         pagamento.StatusCode.Should().Be(HttpStatusCode.NoContent);

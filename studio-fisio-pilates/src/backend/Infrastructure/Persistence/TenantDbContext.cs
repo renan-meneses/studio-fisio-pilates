@@ -38,6 +38,13 @@ public class TenantDbContext : DbContext, IApplicationDbContext
     public DbSet<Ponto> Pontos => Set<Ponto>();
     public DbSet<FolhaSalarial> FolhasSalariais => Set<FolhaSalarial>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<Plano> Planos => Set<Plano>();
+    public DbSet<Servico> Servicos => Set<Servico>();
+    public DbSet<PlanoServico> PlanoServicos => Set<PlanoServico>();
+
+    public DbSet<Turma> Turmas => Set<Turma>();
+
+    public DbSet<TurmaHorario> TurmaHorarios => Set<TurmaHorario>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
