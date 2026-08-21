@@ -25,6 +25,24 @@ public sealed class FinanceiroController : ControllerBase
     public Task<ActionResult<DashboardFinanceiroResponse>> Dashboard([FromQuery] string competencia, CancellationToken ct) =>
         ResponderAsync(new ObterDashboardQuery(competencia), ct);
 
+    [HttpGet("financeiro/inadimplencia")]
+    public Task<ActionResult<InadimplenciaResponse>> Inadimplencia(CancellationToken ct) =>
+        ResponderAsync(new ObterInadimplenciaQuery(), ct);
+
+    [HttpPost("financeiro/faturamento-recorrente")]
+    public Task<ActionResult<FaturamentoRecorrenteResponse>> GerarFaturamentoRecorrente(
+        GerarFaturamentoRecorrenteCommand command, CancellationToken ct) =>
+        ResponderAsync(command, ct);
+
+    [HttpPost("mensalidades/{id:guid}/cobrancas")]
+    public Task<ActionResult<CobrancaResponse>> EmitirCobranca(
+        Guid id, EmitirCobrancaCommand command, CancellationToken ct) =>
+        ResponderAsync(command with { MensalidadeId = id }, ct);
+
+    [HttpGet("mensalidades/{id:guid}/cobrancas")]
+    public Task<ActionResult<IReadOnlyList<CobrancaResponse>>> ListarCobrancas(Guid id, CancellationToken ct) =>
+        ResponderAsync(new ObterCobrancasQuery(id), ct);
+
     [HttpGet("mensalidades")]
     public Task<ActionResult<IReadOnlyList<MensalidadeResponse>>> ListarMensalidades(
         [FromQuery] string? competencia,

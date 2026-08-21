@@ -44,5 +44,9 @@ public interface IApplicationDbContext
 
     DbSet<TurmaHorario> TurmaHorarios { get; }
 
+    DbSet<Cobranca> Cobrancas { get; }
+
+    DbSet<EventoPagamentoWebhook> EventosPagamentoWebhook { get; }
+
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

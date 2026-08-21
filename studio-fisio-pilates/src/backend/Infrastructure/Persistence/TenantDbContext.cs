@@ -48,6 +48,10 @@ public class TenantDbContext : DbContext, IApplicationDbContext
 
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
 
+    public DbSet<Cobranca> Cobrancas => Set<Cobranca>();
+
+    public DbSet<EventoPagamentoWebhook> EventosPagamentoWebhook => Set<EventoPagamentoWebhook>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(typeof(TenantDbContext).Assembly);

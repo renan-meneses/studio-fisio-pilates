@@ -91,3 +91,19 @@ public enum StatusFolha
     Paga = 3,
     Cancelada = 4,
 }
+
+/// <summary>Meio de cobrança emitido para uma mensalidade.</summary>
+public enum TipoCobranca
+{
+    Pix = 1,
+    Boleto = 2,
+}
+
+/// <summary>Ciclo de vida da cobrança junto ao provedor de pagamento.</summary>
+public enum StatusCobranca
+{
+    Pendente = 1,
+    Paga = 2,
+    Expirada = 3,
+    Cancelada = 4,
+}

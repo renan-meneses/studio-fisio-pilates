@@ -1,5 +1,6 @@
 using Clinica.Application.Common.Interfaces;
 using Clinica.Domain.Entities;
+using Clinica.Domain.Enums;
 using ClinicaEntity = Clinica.Domain.Entities.Clinica;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,19 +12,86 @@ namespace Clinica.Persistence.Initialization;
 /// Bancos criados pelo antigo <c>EnsureCreated</c> (sem histórico de
 /// migrations) são adotados: a migration baseline é marcada como aplicada
 /// e as migrations posteriores seguem o fluxo normal.
+///
+/// Também garante um usuário administrador: a clínica demo recebe
+/// <c>admin@demo.clinica</c> (dev) e, quando <see cref="AdminBootstrapOptions"/>
+/// estiver configurado, o admin indicado é criado de forma idempotente
+/// (qualquer ambiente, inclusive produção).
 /// </summary>
 public static class DatabaseInitializer
 {
     private const string EfMigrationsHistoryTable = "__EFMigrationsHistory";
     private const string EfCoreProductVersion = "8.0.10";
 
-    public static async Task InitializeAsync(TenantDbContext context, CancellationToken ct = default)
+    /// <summary>Login padrão da clínica demo (apenas dev).</summary>
+    public const string DemoAdminEmail = "admin@demo.clinica";
+    public const string DemoAdminSenha = "Admin@Demo123";
+
+    public static async Task InitializeAsync(
+        TenantDbContext context,
+        IPasswordHasher passwordHasher,
+        AdminBootstrapOptions? bootstrap = null,
+        CancellationToken ct = default)
     {
         await ApplyMigrationsAdoptingLegacySchemaAsync(context, ct);
 
-        if (await context.Clinicas.AnyAsync(ct))
+        if (!await context.Clinicas.AnyAsync(ct))
+        {
+            await SeedDadosDemoAsync(context, passwordHasher, ct);
+        }
+
+        if (bootstrap is { Configurado: true })
+        {
+            await EnsureAdminUserAsync(context, passwordHasher, bootstrap, ct);
+        }
+    }
+
+    /// <summary>
+    /// Cria o usuário administrador descrito em <paramref name="options"/>
+    /// caso ainda não exista (busca por e-mail ignora o filtro de tenant,
+    /// pois o initializer roda fora do pipeline de requisições).
+    /// </summary>
+    public static async Task EnsureAdminUserAsync(
+        TenantDbContext context,
+        IPasswordHasher passwordHasher,
+        AdminBootstrapOptions options,
+        CancellationToken ct = default)
+    {
+        if (!options.Configurado)
             return;
 
+        var existe = await context.Usuarios
+            .IgnoreQueryFilters()
+            .AnyAsync(u => u.Email == options.Email, ct);
+
+        if (existe)
+            return;
+
+        var clinicaId = options.ClinicaId
+            ?? await context.Clinicas
+                .OrderBy(c => c.Id)
+                .Select(c => (Guid?)c.Id)
+                .FirstOrDefaultAsync(ct)
+            ?? throw new InvalidOperationException(
+                "AdminBootstrap configurado, mas nenhuma clínica existe no banco.");
+
+        await context.Usuarios.AddAsync(new Usuario
+        {
+            ClinicaId = clinicaId,
+            Nome = string.IsNullOrWhiteSpace(options.Nome) ? "Administrador" : options.Nome,
+            Email = options.Email,
+            SenhaHash = passwordHasher.Hash(options.Senha),
+            Papel = PapelUsuario.Administrador,
+        }, ct);
+
+        await context.SaveChangesAsync(ct);
+    }
+
+    private static async Task SeedDadosDemoAsync(
+        TenantDbContext context,
+        IPasswordHasher passwordHasher,
+        CancellationToken ct)
+    {
         var clinicaDemo = new ClinicaEntity
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
@@ -57,7 +125,13 @@ public static class DatabaseInitializer
         await context.Pacientes.AddAsync(paciente, ct);
         await context.Profissionais.AddAsync(profissional, ct);
 
-        await context.SaveChangesAsync(ct);
+        await EnsureAdminUserAsync(context, passwordHasher, new AdminBootstrapOptions
+        {
+            Nome = "Administrador Demo",
+            Email = DemoAdminEmail,
+            Senha = DemoAdminSenha,
+            ClinicaId = clinicaDemo.Id,
+        }, ct);
     }
 
     /// <summary>

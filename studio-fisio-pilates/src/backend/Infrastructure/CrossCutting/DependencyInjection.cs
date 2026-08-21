@@ -1,6 +1,7 @@
 using System.Text;
 using Clinica.Application.Common.Interfaces;
 using Clinica.CrossCutting.Auth;
+using Clinica.CrossCutting.Pagamentos;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,10 @@ public static class DependencyInjection
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+        // Provedor de pagamento simulado (dev/testes). PSP real = nova
+        // implementação de IPaymentGateway + troca do registro abaixo.
+        services.AddScoped<IPaymentGateway, SimulatedPaymentGateway>();
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();

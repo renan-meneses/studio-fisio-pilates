@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Clinica.Application;
+using Clinica.API.Controllers;
 using Clinica.API.Middlewares;
 using Clinica.API.Telemetry;
 using Clinica.CrossCutting;
@@ -21,6 +22,9 @@ builder.Services
     .AddApplication()
     .AddPersistence(builder.Configuration)
     .AddCrossCutting(builder.Configuration);
+
+builder.Services.Configure<WebhookOptions>(
+    builder.Configuration.GetSection(WebhookOptions.SectionName));
 
 builder.Services.AddSingleton<ApiMetrics>();
 
@@ -56,9 +60,21 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
 
+// Roda em dev (seed demo) ou quando AdminBootstrap está configurado
+// (criação idempotente de admin em qualquer ambiente, inclusive prod).
+var adminBootstrap = builder.Configuration
+    .GetSection(AdminBootstrapOptions.SectionName)
+    .Get<AdminBootstrapOptions>() ?? new();
+
+if (app.Environment.IsDevelopment() || adminBootstrap.Configurado)
+{
     using var scope = app.Services.CreateScope();
-    await DatabaseInitializer.InitializeAsync(scope.ServiceProvider.GetRequiredService<TenantDbContext>());
+    await DatabaseInitializer.InitializeAsync(
+        scope.ServiceProvider.GetRequiredService<TenantDbContext>(),
+        scope.ServiceProvider.GetRequiredService<IPasswordHasher>(),
+        adminBootstrap);
 }
 
 // Correlation ID distribuído: primeiro de tudo (cobre inclusive erros).
