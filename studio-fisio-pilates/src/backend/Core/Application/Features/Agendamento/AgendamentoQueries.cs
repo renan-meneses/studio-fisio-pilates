@@ -43,6 +43,7 @@ public sealed class ListarAgendamentosQueryHandler
 
         var agendamentos = await query
             .OrderBy(a => a.DataHoraInicio)
+            .Take(request.Limite)
             .ToListAsync(ct);
 
         return agendamentos.Select(a => a.ToResponse()).ToList();

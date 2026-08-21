@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Threading.RateLimiting;
 using Clinica.Application;
 using Clinica.API.Controllers;
 using Clinica.API.Middlewares;
@@ -40,6 +41,37 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHealthChecks();
 
+// Rate limiting: login restrito (força bruta) + teto global por IP.
+// Desativado no ambiente Testing para não interferir nas suítes paralelas.
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+        options.AddPolicy<string>("auth", context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "anon",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 30,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                }));
+
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            RateLimitPartition.GetSlidingWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "anon",
+                _ => new SlidingWindowRateLimiterOptions
+                {
+                    PermitLimit = 300,
+                    Window = TimeSpan.FromMinutes(1),
+                    SegmentsPerWindow = 6,
+                    QueueLimit = 0,
+                }));
+    });
+}
+
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
     .Get<string[]>() ?? [];
@@ -79,6 +111,19 @@ if (app.Environment.IsDevelopment() || adminBootstrap.Configurado)
 
 // Correlation ID distribuído: primeiro de tudo (cobre inclusive erros).
 app.UseMiddleware<CorrelationIdMiddleware>();
+
+// Security headers em todas as respostas.
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    app.UseRateLimiter();
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

@@ -22,7 +22,9 @@ public sealed record PacienteResumoResponse(
     string? Telefone,
     bool Ativo);
 
-public sealed record ListarPacientesQuery(string? Termo) : IRequest<IReadOnlyList<PacienteResumoResponse>>;
+public sealed record ListarPacientesQuery(
+    string? Termo,
+    int Limite = 200) : IRequest<IReadOnlyList<PacienteResumoResponse>>;
 
 public sealed class ListarPacientesQueryHandler
     : IRequestHandler<ListarPacientesQuery, IReadOnlyList<PacienteResumoResponse>>
@@ -43,7 +45,7 @@ public sealed class ListarPacientesQueryHandler
         if (!string.IsNullOrWhiteSpace(request.Termo))
             query = query.Where(p => p.Nome.ToLower().Contains(request.Termo.ToLower()));
 
-        return (await query.OrderBy(p => p.Nome).ToListAsync(ct))
+        return (await query.OrderBy(p => p.Nome).Take(request.Limite).ToListAsync(ct))
             .Select(p => new PacienteResumoResponse(
                 p.Id,
                 p.Nome,

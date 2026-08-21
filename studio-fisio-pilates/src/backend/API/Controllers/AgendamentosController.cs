@@ -26,9 +26,10 @@ public sealed class AgendamentosController : ControllerBase
         [FromQuery] DateTime? ate,
         [FromQuery] Guid? profissionalId,
         [FromQuery] StatusAgendamento? status,
-        CancellationToken ct)
+        [FromQuery] int limite = 200,
+        CancellationToken ct = default)
     {
-        return Ok(await _mediator.Send(new ListarAgendamentosQuery(de, ate, profissionalId, status), ct));
+        return Ok(await _mediator.Send(new ListarAgendamentosQuery(de, ate, profissionalId, status, limite), ct));
     }
 
     [HttpGet("{id:guid}")]

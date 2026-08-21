@@ -27,9 +27,10 @@ public sealed class ProntuariosController : ControllerBase
     [HttpGet("pacientes")]
     public async Task<ActionResult<IReadOnlyList<PacienteResumoResponse>>> ListarPacientes(
         [FromQuery] string? termo,
-        CancellationToken ct)
+        [FromQuery] int limite = 200,
+        CancellationToken ct = default)
     {
-        return Ok(await _mediator.Send(new ListarPacientesQuery(termo), ct));
+        return Ok(await _mediator.Send(new ListarPacientesQuery(termo, limite), ct));
     }
 
     [HttpPost("pacientes")]
@@ -37,6 +38,14 @@ public sealed class ProntuariosController : ControllerBase
     {
         var id = await _mediator.Send(command, ct);
         return CreatedAtAction(nameof(ListarPacientes), new { }, new { id });
+    }
+
+    /// <summary>LGPD: elimina dados pessoais identificáveis, preservando histórico financeiro/clínico.</summary>
+    [HttpPost("pacientes/{pacienteId:guid}/anonimizar")]
+    public async Task<IActionResult> Anonimizar(Guid pacienteId, CancellationToken ct)
+    {
+        await _mediator.Send(new AnonimizarPacienteCommand(pacienteId), ct);
+        return NoContent();
     }
 
     [HttpGet("paciente/{pacienteId:guid}")]

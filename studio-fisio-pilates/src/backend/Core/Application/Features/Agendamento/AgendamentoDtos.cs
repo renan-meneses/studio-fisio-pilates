@@ -23,6 +23,7 @@ public sealed record ListarAgendamentosQuery(
     DateTime? De,
     DateTime? Ate,
     Guid? ProfissionalId,
-    StatusAgendamento? Status) : IRequest<IReadOnlyList<AgendamentoResponse>>;
+    StatusAgendamento? Status,
+    int Limite = 200) : IRequest<IReadOnlyList<AgendamentoResponse>>;
 
 public sealed record ObterAgendamentoQuery(Guid Id) : IRequest<AgendamentoResponse>;

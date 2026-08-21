@@ -18,6 +18,7 @@ public enum StatusPaciente
     Ativo = 1,
     Inativo = 2,
     Suspenso = 3,
+    Anonimizado = 4,
 }
 
 public enum StatusAgendamento

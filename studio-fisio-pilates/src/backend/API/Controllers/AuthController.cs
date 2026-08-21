@@ -5,6 +5,7 @@ using Clinica.CrossCutting.Auth;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Clinica.API.Controllers;
 
@@ -22,6 +23,7 @@ public sealed class AuthController : ControllerBase
     /// <summary>Autentica usuário e descobre o tenant da clínica no retorno (tenantId/tenantNome).</summary>
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     public async Task<ActionResult<LoginResponse>> Login(LoginCommand command, CancellationToken ct)
     {
         var response = await _mediator.Send(command, ct);
