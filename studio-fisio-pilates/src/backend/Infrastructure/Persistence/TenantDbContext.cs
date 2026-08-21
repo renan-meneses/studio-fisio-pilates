@@ -52,6 +52,8 @@ public class TenantDbContext : DbContext, IApplicationDbContext
 
     public DbSet<EventoPagamentoWebhook> EventosPagamentoWebhook => Set<EventoPagamentoWebhook>();
 
+    public DbSet<WaitlistEntry> WaitlistEntries => Set<WaitlistEntry>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(typeof(TenantDbContext).Assembly);

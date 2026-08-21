@@ -45,4 +45,29 @@ public sealed class TurmasController : ControllerBase
         await _mediator.Send(new RemoverHorarioCommand(id, horarioId), ct);
         return NoContent();
     }
+
+    [HttpPost("{id:guid}/waitlist")]
+    public async Task<IActionResult> EntrarWaitlist(
+        Guid id, EntrarWaitlistRequest request, CancellationToken ct)
+    {
+        var entradaId = await _mediator.Send(
+            new EntrarWaitlistCommand(id, request.PacienteId), ct);
+        return Ok(new { id = entradaId });
+    }
+
+    [HttpGet("{id:guid}/waitlist")]
+    public async Task<ActionResult<IReadOnlyList<WaitlistResponse>>> ListarWaitlist(
+        Guid id, CancellationToken ct)
+    {
+        return Ok(await _mediator.Send(new ListarWaitlistQuery(id), ct));
+    }
+
+    [HttpDelete("{id:guid}/waitlist/{entradaId:guid}")]
+    public async Task<IActionResult> SairWaitlist(Guid id, Guid entradaId, CancellationToken ct)
+    {
+        await _mediator.Send(new SairWaitlistCommand(entradaId), ct);
+        return NoContent();
+    }
 }
+
+public sealed record EntrarWaitlistRequest(Guid PacienteId);

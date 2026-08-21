@@ -17,6 +17,8 @@ internal class TurmaConfiguration : IEntityTypeConfiguration<Turma>
 
         builder.Property(t => t.Nome).HasMaxLength(120);
 
+        builder.Property(t => t.Capacidade).HasDefaultValue(8);
+
         builder.Property(t => t.TipoSessao).HasConversion<string>().HasMaxLength(32);
 
         builder.HasOne(t => t.Profissional)

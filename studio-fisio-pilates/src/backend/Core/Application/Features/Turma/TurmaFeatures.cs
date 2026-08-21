@@ -21,6 +21,7 @@ public sealed record TurmaResponse(
     Guid? ProfissionalId,
     string? ProfissionalNome,
     bool Ativo,
+    int Capacidade,
     IReadOnlyList<TurmaHorarioResponse> Horarios);
 
 public sealed record HorarioRequest(int DiaSemana, TimeSpan HoraInicio, TimeSpan HoraFim);
@@ -31,6 +32,7 @@ public sealed record CriarTurmaCommand(
     string Nome,
     TipoSessao TipoSessao,
     Guid? ProfissionalId,
+    int? Capacidade = null,
     IReadOnlyList<HorarioRequest>? Horarios = null) : IRequest<Guid>;
 
 public sealed record AdicionarHorarioCommand(
@@ -47,6 +49,9 @@ public sealed class CriarTurmaCommandValidator : AbstractValidator<CriarTurmaCom
     {
         RuleFor(r => r.Nome).NotEmpty().MaximumLength(120);
         RuleFor(r => r.TipoSessao).IsInEnum();
+        RuleFor(r => r.Capacidade).GreaterThan(0)
+            .When(r => r.Capacidade.HasValue)
+            .WithMessage("Capacidade deve ser positiva.");
         RuleForEach(r => r.Horarios)
             .Must(h => h is { DiaSemana: >= 1 and <= 7 })
             .WithMessage("Dia da semana deve estar entre 1 (Segunda) e 7 (Domingo).")
@@ -91,6 +96,7 @@ public sealed class ListarTurmasQueryHandler
             t.ProfissionalId,
             t.Profissional?.Nome,
             t.Ativo,
+            t.Capacidade,
             t.Horarios
                 .OrderBy(h => h.DiaSemana).ThenBy(h => h.HoraInicio)
                 .Select(h => new TurmaHorarioResponse(h.Id, h.DiaSemana, h.HoraInicio, h.HoraFim))
@@ -122,6 +128,7 @@ public sealed class CriarTurmaCommandHandler : IRequestHandler<CriarTurmaCommand
             Nome = request.Nome.Trim(),
             TipoSessao = request.TipoSessao,
             ProfissionalId = request.ProfissionalId,
+            Capacidade = request.Capacidade ?? 8,
             Ativo = true,
         };
 

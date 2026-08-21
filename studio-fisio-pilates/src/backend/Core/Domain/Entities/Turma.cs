@@ -18,6 +18,9 @@ public class Turma : BaseEntity, ITenantEntity, IAggregateRoot
 
     public bool Ativo { get; set; } = true;
 
+    /// <summary>Número máximo de alunos por horário da turma.</summary>
+    public int Capacidade { get; set; } = 8;
+
     public ICollection<TurmaHorario> Horarios { get; set; } = new List<TurmaHorario>();
 }
 

@@ -1,6 +1,7 @@
 using Clinica.Domain.Entities;
 using ClinicaEntity = Clinica.Domain.Entities.Clinica;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Clinica.Application.Common.Interfaces;
 
@@ -10,6 +11,9 @@ namespace Clinica.Application.Common.Interfaces;
 /// </summary>
 public interface IApplicationDbContext
 {
+    /// <summary>Transações, migrations e acesso ao provider.</summary>
+    DatabaseFacade Database { get; }
+
     DbSet<ClinicaEntity> Clinicas { get; }
 
     DbSet<Paciente> Pacientes { get; }
@@ -47,6 +51,8 @@ public interface IApplicationDbContext
     DbSet<Cobranca> Cobrancas { get; }
 
     DbSet<EventoPagamentoWebhook> EventosPagamentoWebhook { get; }
+
+    DbSet<WaitlistEntry> WaitlistEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }
