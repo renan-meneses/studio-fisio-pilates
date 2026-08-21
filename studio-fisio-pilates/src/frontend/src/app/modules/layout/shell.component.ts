@@ -12,6 +12,7 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
+  { rota: '/dashboard', rotulo: 'Dashboard', icone: '📊' },
   { rota: '/agenda', rotulo: 'Agenda', icone: '📅' },
   { rota: '/alunos', rotulo: 'Alunos', icone: '🎓' },
   { rota: '/turmas', rotulo: 'Turmas', icone: '🧘' },

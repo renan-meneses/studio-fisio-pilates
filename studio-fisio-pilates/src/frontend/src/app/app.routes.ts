@@ -3,7 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { tenantGuard } from './core/guards/tenant.guard';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'agenda' },
+  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   {
     path: 'login',
     loadComponent: () => import('./modules/auth/pages/login.component').then(m => m.LoginComponent),
@@ -13,6 +13,7 @@ export const routes: Routes = [
     canActivate: [authGuard, tenantGuard],
     loadComponent: () => import('./modules/layout/shell.component').then(m => m.ShellComponent),
     children: [
+      { path: 'dashboard', loadChildren: () => import('./modules/dashboard/dashboard.routes').then(m => m.dashboardRoutes) },
       { path: 'agenda', loadChildren: () => import('./modules/agenda/agenda.routes').then(m => m.agendaRoutes) },
       {
         path: 'prontuarios',
@@ -48,5 +49,5 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: '**', redirectTo: 'agenda' },
+  { path: '**', redirectTo: 'dashboard' },
 ];
