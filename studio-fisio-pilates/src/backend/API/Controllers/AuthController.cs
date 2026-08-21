@@ -52,4 +52,12 @@ public sealed class AuthController : ControllerBase
         await _mediator.Send(command with { UsuarioId = User.GetUserId() ?? Guid.Empty }, ct);
         return NoContent();
     }
+
+    /// <summary>Altera a senha do usuário autenticado (exige a senha atual).</summary>
+    [HttpPatch("senha")]
+    public async Task<IActionResult> AlterarSenha(AlterarSenhaPropriaCommand command, CancellationToken ct)
+    {
+        await _mediator.Send(command with { UsuarioId = User.GetUserId() ?? Guid.Empty }, ct);
+        return NoContent();
+    }
 }

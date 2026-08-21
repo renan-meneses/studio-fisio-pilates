@@ -42,6 +42,10 @@ export const routes: Routes = [
         path: 'turmas',
         loadChildren: () => import('./modules/turmas/turmas.routes').then(m => m.turmasRoutes),
       },
+      {
+        path: 'usuarios',
+        loadChildren: () => import('./modules/usuarios/usuarios.routes').then(m => m.usuariosRoutes),
+      },
     ],
   },
   { path: '**', redirectTo: 'agenda' },

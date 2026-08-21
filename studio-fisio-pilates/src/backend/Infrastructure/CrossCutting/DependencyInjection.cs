@@ -52,6 +52,11 @@ public static class DependencyInjection
                 policy
                     .RequireAuthenticatedUser()
                     .RequireRole(AuthorizationPolicies.PepAccessRoles));
+
+            options.AddPolicy(AuthorizationPolicies.AdminOnly, policy =>
+                policy
+                    .RequireAuthenticatedUser()
+                    .RequireRole(AuthorizationPolicies.AdminOnlyRoles));
         });
 
         return services;

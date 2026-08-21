@@ -22,6 +22,7 @@ const NAV: NavItem[] = [
   { rota: '/financeiro/contas', rotulo: 'Contas a pagar', icone: '🧾' },
   { rota: '/rh', rotulo: 'Folha', icone: '👥' },
   { rota: '/rh/ponto', rotulo: 'Ponto', icone: '🕐' },
+  { rota: '/usuarios', rotulo: 'Usuários', icone: '🔐' },
 ];
 
 @Component({

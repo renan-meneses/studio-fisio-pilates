@@ -56,6 +56,11 @@ export class SessionStore {
     return raw ? ((JSON.parse(raw) as { nome: string }).nome) : null;
   }
 
+  static userId(): string | null {
+    const raw = localStorage.getItem(STORAGE_KEYS.user);
+    return raw ? ((JSON.parse(raw) as { usuarioId: string }).usuarioId) : null;
+  }
+
   static userTema(): 'Claro' | 'Escuro' | null {
     const raw = localStorage.getItem(STORAGE_KEYS.user);
     if (!raw) {
