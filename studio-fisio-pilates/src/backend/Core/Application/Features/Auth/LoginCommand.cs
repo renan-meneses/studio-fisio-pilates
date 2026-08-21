@@ -54,14 +54,14 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginRes
 
         _tenantAccessor.Set(clinica.Id, clinica.Nome);
 
-        var token = _jwt.CreateToken(usuario.Id, usuario.Email, usuario.ClinicaId, clinica.Nome);
+        var emissao = _jwt.CreateToken(usuario.Id, usuario.Email, usuario.ClinicaId, clinica.Nome, usuario.Papel.ToString());
 
         usuario.UltimoLogin = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
         return new LoginResponse(
-            token,
-            DateTime.UtcNow.AddHours(8),
+            emissao.Token,
+            emissao.ExpiresAt,
             clinica.Id,
             clinica.Nome,
             usuario.Id,

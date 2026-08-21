@@ -41,6 +41,14 @@ public static class DependencyInjection
                 };
             });
 
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(AuthorizationPolicies.PepAccess, policy =>
+                policy
+                    .RequireAuthenticatedUser()
+                    .RequireRole(AuthorizationPolicies.PepAccessRoles));
+        });
+
         return services;
     }
 }

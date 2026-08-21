@@ -45,7 +45,9 @@ public sealed class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Falha não tratada em {Path}", context.Request.Path);
+            var tenantId = context.Items[TenantHeaderMiddleware.TenantHeaderName];
+            _logger.LogError(ex, "Falha não tratada em {Path} | tenant {TenantId} | correlation {CorrelationId}",
+                context.Request.Path, tenantId, context.TraceIdentifier);
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await context.Response.WriteAsJsonAsync(new { error = "Ocorreu um erro interno. Tente novamente." });
         }

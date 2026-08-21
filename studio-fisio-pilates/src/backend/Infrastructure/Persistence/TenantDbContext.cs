@@ -46,6 +46,8 @@ public class TenantDbContext : DbContext, IApplicationDbContext
 
     public DbSet<TurmaHorario> TurmaHorarios => Set<TurmaHorario>();
 
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(typeof(TenantDbContext).Assembly);

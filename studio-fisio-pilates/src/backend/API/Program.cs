@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Clinica.Application;
 using Clinica.API.Middlewares;
+using Clinica.API.Telemetry;
 using Clinica.CrossCutting;
 using Clinica.Persistence;
 using Clinica.Persistence.Initialization;
@@ -8,10 +9,20 @@ using Clinica.Application.Common.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddJsonConsole(options =>
+{
+    options.IncludeScopes = true;
+    options.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
+    options.UseUtcTimestamp = true;
+});
+
 builder.Services
     .AddApplication()
     .AddPersistence(builder.Configuration)
     .AddCrossCutting(builder.Configuration);
+
+builder.Services.AddSingleton<ApiMetrics>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -50,6 +61,9 @@ if (app.Environment.IsDevelopment())
     await DatabaseInitializer.InitializeAsync(scope.ServiceProvider.GetRequiredService<TenantDbContext>());
 }
 
+// Correlation ID distribuído: primeiro de tudo (cobre inclusive erros).
+app.UseMiddleware<CorrelationIdMiddleware>();
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseAuthentication();
@@ -61,6 +75,15 @@ app.UseCors("ClinicaWeb");
 // Executado APÓS UseAuthentication para que o principal autenticado
 // esteja disponível na validação de divergência de tenant.
 app.UseMiddleware<TenantHeaderMiddleware>();
+
+// Idempotência genérica de POST via header Idempotency-Key (se presente).
+// Após o tenant (chave de escopo por tenant) e antes do log do request,
+// para que replays também sejam registrados.
+app.UseMiddleware<IdempotencyMiddleware>();
+
+// Log estruturado da requisição com scope de tenant/usuário (após a
+// resolução do tenant, para que o escopo carregue o tenant ativo).
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.MapControllers();
 app.MapHealthChecks("/health");

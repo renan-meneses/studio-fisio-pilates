@@ -116,6 +116,30 @@ public sealed class ApiFixture : IAsyncLifetime
 
         return new SeedData(clinica.Id, usuario.Email, senha, paciente.Id, profissional.Id);
     }
+
+    /// <summary>Cria usuário com papel específico e credenciais conhecidas.</summary>
+    public async Task<SeedUsuario> SeedUsuarioAsync(Guid clinicaId, string papel)
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<TenantDbContext>();
+        var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+        var senha = "Senha@123";
+
+        var usuario = new Usuario
+        {
+            Id = Guid.NewGuid(),
+            ClinicaId = clinicaId,
+            Nome = $"Usuário {papel}",
+            Email = $"user-{papel}-{Guid.NewGuid():N}@teste.local",
+            SenhaHash = hasher.Hash(senha),
+            Papel = Enum.Parse<PapelUsuario>(papel),
+        };
+
+        await context.Usuarios.AddAsync(usuario);
+        await context.SaveChangesAsync();
+
+        return new SeedUsuario(usuario.Email, senha);
+    }
 }
 
 public sealed record SeedData(
@@ -127,6 +151,8 @@ public sealed record SeedData(
 {
     public string TenantHeaderValue => ClinicaId.ToString();
 }
+
+public sealed record SeedUsuario(string Email, string Senha);
 
 [CollectionDefinition("api")]
 public sealed class ApiCollection : ICollectionFixture<ApiFixture>;

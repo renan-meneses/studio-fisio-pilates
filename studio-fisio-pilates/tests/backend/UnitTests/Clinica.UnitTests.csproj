@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\..\src\backend\Core\Application\Clinica.Application.csproj" />
     <ProjectReference Include="..\..\..\src\backend\Infrastructure\CrossCutting\Clinica.CrossCutting.csproj" />
     <ProjectReference Include="..\..\..\src\backend\Infrastructure\Persistence\Clinica.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\src\backend\API\Clinica.API.csproj" />
   </ItemGroup>
 
 </Project>

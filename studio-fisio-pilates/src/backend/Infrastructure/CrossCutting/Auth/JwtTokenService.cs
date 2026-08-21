@@ -9,7 +9,8 @@ namespace Clinica.CrossCutting.Auth;
 
 /// <summary>
 /// Emissão e validação de tokens JWT.
-/// Claims embarcadas: sub (usuário), email, tenant_id e clinica (nome).
+/// Claims embarcadas: sub (usuário), email, role (papel do usuário),
+/// tenant_id e clinica (nome).
 /// </summary>
 public sealed class JwtTokenService : ITokenService
 {
@@ -20,7 +21,7 @@ public sealed class JwtTokenService : ITokenService
         _options = options.Value;
     }
 
-    public string CreateToken(Guid userId, string email, Guid clinicaId, string clinicaNome)
+    public TokenResult CreateToken(Guid userId, string email, Guid clinicaId, string clinicaNome, string papel)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -30,6 +31,7 @@ public sealed class JwtTokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, email),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.Role, papel),
             new Claim(CustomClaimTypes.TenantId, clinicaId.ToString()),
             new Claim(CustomClaimTypes.TenantName, clinicaNome),
         };
@@ -41,7 +43,11 @@ public sealed class JwtTokenService : ITokenService
             expires: DateTime.UtcNow.AddMinutes(_options.ExpirationMinutes),
             signingCredentials: credentials);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        // A expiração retornada é a claim exp codificada no JWT (fonte única da
+        // verdade) — elimina o drift entre o valor exposto na API e o valido.
+        var expiresAt = DateTimeOffset.FromUnixTimeSeconds(token.Payload.Expiration!.Value).UtcDateTime;
+
+        return new TokenResult(new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
 }
 
@@ -64,6 +70,9 @@ public static class ClaimsPrincipalExtensions
 
     public static Guid? GetTenantId(this ClaimsPrincipal principal) =>
         Guid.TryParse(principal.FindFirstValue(CustomClaimTypes.TenantId), out var id) ? id : null;
+
+    public static string? GetPapel(this ClaimsPrincipal principal) =>
+        principal.FindFirstValue(ClaimTypes.Role);
 
     public static string? GetEmail(this ClaimsPrincipal principal) =>
         principal.FindFirstValue(JwtRegisteredClaimNames.Email)

@@ -38,6 +38,7 @@ public sealed class AuthController : ControllerBase
             userId = user.GetUserId(),
             email = user.GetEmail(),
             tenantId = user.GetTenantId(),
+            papel = user.GetPapel(),
             authenticated = user.Identity?.IsAuthenticated ?? false,
         });
     }
