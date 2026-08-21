@@ -134,7 +134,7 @@ public class AgendamentoRulesTests
             Status = StatusAgendamento.Realizado,
         });
 
-        var handler = new CancelarAgendamentoCommandHandler(db);
+        var handler = new CancelarAgendamentoCommandHandler(db, new NotificacaoSpy());
 
         var agendamento = db.Agendamentos.Single();
         var acao = async () => await handler.Handle(
@@ -169,5 +169,17 @@ public class AgendamentoRulesTests
         var atualizado = db.Agendamentos.Include(a => a.Presenca).Single();
         atualizado.Status.Should().Be(StatusAgendamento.Realizado);
         atualizado.Presenca!.Status.Should().Be(StatusPresenca.Presente);
+    }
+}
+
+/// <summary>Spy simples de INotificacaoService para testes de handler.</summary>
+public sealed class NotificacaoSpy : INotificacaoService
+{
+    public List<NotificacaoMensagem> Mensagens { get; } = [];
+
+    public Task EnviarAsync(NotificacaoMensagem mensagem, CancellationToken ct)
+    {
+        Mensagens.Add(mensagem);
+        return Task.CompletedTask;
     }
 }

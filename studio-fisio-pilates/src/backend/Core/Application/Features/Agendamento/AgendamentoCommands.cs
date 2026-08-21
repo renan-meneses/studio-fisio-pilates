@@ -192,10 +192,12 @@ public sealed class AtualizarAgendamentoCommandHandler
 public sealed class CancelarAgendamentoCommandHandler : IRequestHandler<CancelarAgendamentoCommand>
 {
     private readonly IApplicationDbContext _db;
+    private readonly INotificacaoService _notificacoes;
 
-    public CancelarAgendamentoCommandHandler(IApplicationDbContext db)
+    public CancelarAgendamentoCommandHandler(IApplicationDbContext db, INotificacaoService notificacoes)
     {
         _db = db;
+        _notificacoes = notificacoes;
     }
 
     public async Task Handle(CancelarAgendamentoCommand request, CancellationToken ct)
@@ -207,12 +209,95 @@ public sealed class CancelarAgendamentoCommandHandler : IRequestHandler<Cancelar
         if (agendamento.Status is StatusAgendamento.Realizado)
             throw new BusinessRuleException("Agendamento realizado não pode ser cancelado.");
 
+        // Mesmo padrão de Criar/Atualizar: lock advisory serializa a janela do
+        // profissional para que a checagem de capacidade na promoção não sofra
+        // TOCTOU com agendamentos concorrentes.
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+        await AgendamentoLock.AdquirirAsync(_db, agendamento.ProfissionalId, ct);
+
         agendamento.Status = StatusAgendamento.Cancelado;
         agendamento.Observacoes = string.IsNullOrWhiteSpace(agendamento.Observacoes)
             ? $"Cancelado: {request.Motivo}"
             : $"{agendamento.Observacoes} — Cancelado: {request.Motivo}";
 
         await _db.SaveChangesAsync(ct);
+
+        await PromoverPrimeiroDaFilaAsync(_db, agendamento, _notificacoes, ct);
+
+        await tx.CommitAsync(ct);
+    }
+
+    /// <summary>
+    /// Liberação de vaga em turma: promove automaticamente o primeiro da fila
+    /// de espera para a janela cancelada. A promoção revalida todas as regras
+    /// (capacidade, tipo de sessão, conflitos do profissional); se alguma
+    /// falhar, a fila permanece intacta para a próxima vaga.
+    /// </summary>
+    internal static async Task<Guid?> PromoverPrimeiroDaFilaAsync(
+        IApplicationDbContext db,
+        AgendamentoEntity cancelado,
+        INotificacaoService notificacoes,
+        CancellationToken ct)
+    {
+        if (cancelado.TurmaId is null)
+            return null;
+
+        var entrada = await db.WaitlistEntries
+            .Include(w => w.Paciente)
+            .Where(w => w.TurmaId == cancelado.TurmaId && w.Ativo)
+            .OrderBy(w => w.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
+        if (entrada is null)
+            return null;
+
+        var requisicao = new CriarAgendamentoCommand(
+            entrada.PacienteId,
+            cancelado.ProfissionalId,
+            cancelado.DataHoraInicio,
+            cancelado.DataHoraFim,
+            cancelado.TipoSessao,
+            cancelado.TipoAula,
+            cancelado.TurmaId,
+            cancelado.ValorSessao,
+            "Promovido da lista de espera.");
+
+        try
+        {
+            await CriarAgendamentoCommandHandler.ValidarDependencias(db, requisicao, null, ct);
+        }
+        catch (BusinessRuleException)
+        {
+            return null;
+        }
+
+        var promovido = new AgendamentoEntity
+        {
+            PacienteId = entrada.PacienteId,
+            ProfissionalId = cancelado.ProfissionalId,
+            DataHoraInicio = cancelado.DataHoraInicio,
+            DataHoraFim = cancelado.DataHoraFim,
+            TipoSessao = cancelado.TipoSessao,
+            TipoAula = cancelado.TipoAula,
+            TurmaId = cancelado.TurmaId,
+            ValorSessao = cancelado.ValorSessao,
+            Observacoes = "Promovido da lista de espera.",
+        };
+
+        await db.Agendamentos.AddAsync(promovido, ct);
+        entrada.Ativo = false;
+        await db.SaveChangesAsync(ct);
+
+        await notificacoes.EnviarAsync(new NotificacaoMensagem(
+            cancelado.ClinicaId,
+            entrada.PacienteId,
+            entrada.Paciente?.Email,
+            "Vaga abriu na sua turma!",
+            $"Uma vaga foi liberada e você foi promovido da lista de espera " +
+            $"para {cancelado.DataHoraInicio:dd/MM/yyyy HH:mm}. Bom treino!"),
+            ct);
+
+        return promovido.Id;
     }
 }
 

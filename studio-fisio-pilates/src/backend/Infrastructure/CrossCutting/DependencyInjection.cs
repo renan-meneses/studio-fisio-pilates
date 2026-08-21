@@ -22,6 +22,7 @@ public static class DependencyInjection
         // Provedor de pagamento simulado (dev/testes). PSP real = nova
         // implementação de IPaymentGateway + troca do registro abaixo.
         services.AddScoped<IPaymentGateway, SimulatedPaymentGateway>();
+        services.AddSingleton<INotificacaoService, CrossCutting.Notifications.LoggingNotificacaoService>();
 
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
