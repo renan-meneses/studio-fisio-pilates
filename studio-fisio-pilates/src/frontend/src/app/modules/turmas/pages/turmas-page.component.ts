@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../shared/components/page-header.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state.component';
 import { TurmaService } from '../services/turma.service';
-import { DIAS_SEMANA, horarioCurto, rotuloDia, Turma, TurmaHorario } from '../models/turma.model';
+import { DIAS_SEMANA, horarioCurto, rotuloDia, Turma, TurmaHorario, WaitlistEntry } from '../models/turma.model';
 import { AgendaService } from '../../agenda/services/agenda.service';
 import { TIPOS_SESSAO } from '../../agenda/models/agendamento.model';
 
@@ -34,6 +34,10 @@ interface LinhaHorario {
               <option [value]="t.valor">{{ t.rotulo }}</option>
             }
           </select>
+        </div>
+        <div class="form-group">
+          <label>Capacidade por horário</label>
+          <input formControlName="capacidade" type="number" min="1" max="50" />
         </div>
         <div class="form-group form-group--full">
           <label>Profissional</label>
@@ -92,7 +96,7 @@ interface LinhaHorario {
                   {{ rotuloSessao(t.tipoSessao) }} · {{ t.profissionalNome ?? 'Sem profissional fixo' }}
                 </p>
               </div>
-              <span class="badge badge--info">{{ t.horarios.length }} horário(s)</span>
+              <span class="badge badge--info">{{ t.capacidade }} vagas · {{ t.horarios.length }} horário(s)</span>
             </div>
             <ul class="turma__horarios">
               @for (h of t.horarios; track h.id) {
@@ -102,6 +106,37 @@ interface LinhaHorario {
                 </li>
               }
             </ul>
+            <div class="waitlist">
+              <h4 class="waitlist__title">Lista de espera</h4>
+              @if (waitlistDe(t.id).length === 0) {
+                <p class="waitlist__vazia">Nenhum aluno na fila.</p>
+              } @else {
+                <ul class="waitlist__lista">
+                  @for (entrada of waitlistDe(t.id); track entrada.id) {
+                    <li>
+                      <span>{{ $index + 1 }}. {{ entrada.pacienteNome }}</span>
+                      <button class="chip__remover" title="Remover da fila" (click)="sairDaFila(t.id, entrada.id)">✕</button>
+                    </li>
+                  }
+                </ul>
+              }
+              <div class="waitlist__entrar">
+                <select #seletorAluno (change)="null">
+                  <option value="">Selecionar aluno…</option>
+                  @for (p of pacientes(); track p.id) {
+                    <option [value]="p.id">{{ p.nome }}</option>
+                  }
+                </select>
+                <button
+                  type="button"
+                  class="btn btn--outline btn--sm"
+                  [disabled]="!seletorAluno.value"
+                  (click)="entrarNaFila(t.id, seletorAluno.value); seletorAluno.value = ''"
+                >
+                  Entrar na fila
+                </button>
+              </div>
+            </div>
           </div>
         }
       </div>
@@ -146,6 +181,34 @@ interface LinhaHorario {
       opacity: 0.7;
     }
     .chip__remover:hover { opacity: 1; }
+    .waitlist {
+      border-top: 1px solid var(--clin-border);
+      padding-top: 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .waitlist__title { margin: 0; font-size: 0.85rem; color: var(--clin-text-muted); }
+    .waitlist__vazia { margin: 0; font-size: 0.8rem; color: var(--clin-text-muted); }
+    .waitlist__lista {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: 0.85rem;
+    }
+    .waitlist__lista li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--clin-surface-alt);
+      border-radius: 8px;
+      padding: 0.4rem 0.7rem;
+    }
+    .waitlist__entrar { display: flex; gap: 0.4rem; }
+    .waitlist__entrar select { flex: 1; padding: 0.35rem 0.5rem; border: 1px solid var(--clin-border); border-radius: 6px; background: var(--clin-surface); font: inherit; font-size: 0.85rem; }
   `,
 })
 export class TurmasPageComponent {
@@ -158,6 +221,8 @@ export class TurmasPageComponent {
 
   readonly turmas = signal<Turma[]>([]);
   readonly profissionais = signal<{ id: string; nome: string; especialidades: string }[]>([]);
+  readonly pacientes = signal<{ id: string; nome: string }[]>([]);
+  readonly waitlists = signal<Record<string, WaitlistEntry[]>>({});
   readonly carregando = signal(false);
   readonly erro = signal('');
 
@@ -167,6 +232,7 @@ export class TurmasPageComponent {
     nome: ['', Validators.required],
     tipoSessao: ['PilatesSolo', Validators.required],
     profissionalId: [''],
+    capacidade: [8],
   });
 
   constructor() {
@@ -175,9 +241,40 @@ export class TurmasPageComponent {
 
   recarregar(): void {
     this.carregando.set(true);
-    this.service.listar().subscribe(lista => this.turmas.set(lista));
+    this.service.listar().subscribe(lista => {
+      this.turmas.set(lista);
+      lista.forEach(t =>
+        this.service.waitlist(t.id).subscribe(entradas => this.carregarWaitlist(t.id, entradas)),
+      );
+    });
     this.agenda.listarProfissionais().subscribe(lista => this.profissionais.set(lista));
+    this.agenda.listarPacientes().subscribe(lista => this.pacientes.set(lista));
     this.carregando.set(false);
+  }
+
+  carregarWaitlist(turmaId: string, entradas: WaitlistEntry[]): void {
+    this.waitlists.update(atual => ({ ...atual, [turmaId]: entradas }));
+  }
+
+  waitlistDe(turmaId: string): WaitlistEntry[] {
+    return this.waitlists()[turmaId] ?? [];
+  }
+
+  entrarNaFila(turmaId: string, pacienteId: string): void {
+    if (!pacienteId) {
+      return;
+    }
+    this.service.entrarWaitlist(turmaId, pacienteId).subscribe({
+      next: () => this.recarregar(),
+      error: (erro: Error) => alert(erro.message),
+    });
+  }
+
+  sairDaFila(turmaId: string, entradaId: string): void {
+    this.service.sairWaitlist(turmaId, entradaId).subscribe({
+      next: () => this.recarregar(),
+      error: (erro: Error) => alert(erro.message),
+    });
   }
 
   rotuloSessao(tipo: string): string {
@@ -217,11 +314,12 @@ export class TurmasPageComponent {
       nome: this.form.value.nome!,
       tipoSessao: this.form.value.tipoSessao as 'PilatesSolo',
       profissionalId: this.form.value.profissionalId || undefined,
+      capacidade: this.form.value.capacidade ?? 8,
       horarios: horarios.length ? horarios : undefined,
     }).subscribe({
       next: () => {
         this.carregando.set(false);
-        this.form.reset({ tipoSessao: 'PilatesSolo' });
+        this.form.reset({ tipoSessao: 'PilatesSolo', capacidade: 8 });
         this.linhasHorarios.length = 0;
         this.recarregar();
       },

@@ -14,7 +14,15 @@ export interface Turma {
   profissionalId?: string;
   profissionalNome?: string;
   ativo: boolean;
+  capacidade: number;
   horarios: TurmaHorario[];
+}
+
+export interface WaitlistEntry {
+  id: string;
+  pacienteId: string;
+  pacienteNome: string;
+  entradaEm: string;
 }
 
 export interface HorarioNovo {

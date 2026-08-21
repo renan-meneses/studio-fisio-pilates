@@ -7,9 +7,11 @@ import {
   ContaPagar,
   CriarContaPagarRequest,
   FinanceiroResumo,
+  Inadimplencia,
   Mensalidade,
   ReceberMensalidadeRequest,
 } from '../models/financeiro.model';
+import { Cobranca } from '../models/financeiro.model';
 
 @Injectable({ providedIn: 'root' })
 export class FinanceiroService {
@@ -52,5 +54,34 @@ export class FinanceiroService {
 
   pagarConta(id: string): Observable<void> {
     return this.http.post<void>(`${this.base}/contas-pagar/${id}/pagar`, {});
+  }
+
+  // ===== Fase 3: cobranças, inadimplência e faturamento recorrente =====
+
+  private readonly mensalidadesBase = `${environment.apiUrl}/mensalidades`;
+
+  faturarRecorrente(competencia: string): Observable<{ geradas: number; jaExistentes: number }> {
+    return this.http.post<{ geradas: number; jaExistentes: number }>(
+      `${this.base}/faturamento-recorrente`,
+      { competencia },
+    );
+  }
+
+  inadimplencia(): Observable<Inadimplencia> {
+    return this.http.get<Inadimplencia>(`${this.base}/inadimplencia`);
+  }
+
+  emitirCobranca(mensalidadeId: string, tipo: 'Pix' | 'Boleto'): Observable<Cobranca> {
+    const valorTipo = tipo === 'Pix' ? 1 : 2;
+    return this.http.post<Cobranca>(
+      `${this.mensalidadesBase}/${mensalidadeId}/cobrancas`,
+      { tipo: valorTipo },
+    );
+  }
+
+  listarCobrancas(mensalidadeId: string): Observable<Cobranca[]> {
+    return this.http.get<Cobranca[]>(
+      `${this.mensalidadesBase}/${mensalidadeId}/cobrancas`,
+    );
   }
 }

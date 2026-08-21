@@ -1,10 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../shared/components/page-header.component';
 import { StatCardComponent } from '../../../shared/components/stat-card.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state.component';
 import { FinanceiroService } from '../services/financeiro.service';
-import { FinanceiroResumo, Mensalidade } from '../models/financeiro.model';
+import { FinanceiroResumo, Inadimplencia, Mensalidade } from '../models/financeiro.model';
 
 function brl(valor: number): string {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -13,7 +14,7 @@ function brl(valor: number): string {
 @Component({
   selector: 'clin-financeiro-page',
   standalone: true,
-  imports: [PageHeaderComponent, StatCardComponent, EmptyStateComponent, ReactiveFormsModule],
+  imports: [PageHeaderComponent, StatCardComponent, EmptyStateComponent, ReactiveFormsModule, DatePipe],
   template: `
     <clin-page-header titulo="Financeiro" subtitulo="Acompanhamento mensal de receitas e despesas">
       <input
@@ -63,6 +64,19 @@ function brl(valor: number): string {
     <section class="card">
       <header class="section">
         <h2 class="section__title">Mensalidades — {{ competencia() }}</h2>
+        <div class="faturamento">
+          @if (mensagemFaturamento()) {
+            <span class="hint-faturamento">{{ mensagemFaturamento() }}</span>
+          }
+          <button
+            class="btn btn--outline"
+            type="button"
+            [disabled]="faturando()"
+            (click)="gerarFaturamento()"
+          >
+            {{ faturando() ? 'Gerando…' : '⚡ Gerar faturamento do mês' }}
+          </button>
+        </div>
       </header>
       @if (mensalidades().length === 0) {
         <clin-empty-state
@@ -95,6 +109,8 @@ function brl(valor: number): string {
                 <td>
                   <div class="acoes">
                     @if (!m.paga) {
+                      <button class="btn btn--outline" (click)="emitirCobranca(m, 'Pix')" title="Emitir cobrança Pix">Pix</button>
+                      <button class="btn btn--outline" (click)="emitirCobranca(m, 'Boleto')" title="Emitir boleto">Boleto</button>
                       <button class="btn btn--primary" (click)="receber(m)">Receber</button>
                       <button class="btn btn--danger" (click)="cancelar(m)">Cancelar</button>
                     }
@@ -104,6 +120,49 @@ function brl(valor: number): string {
             }
           </tbody>
         </table>
+      }
+    </section>
+
+    <section class="card">
+      <header class="section">
+        <h2 class="section__title">Inadimplência (vencidas em aberto)</h2>
+      </header>
+      @if (inadimplencia(); as i) {
+        @if (i.itens.length === 0) {
+          <clin-empty-state icone="✅" titulo="Nenhum vencido" hint="Todas as mensalidades estão em dia." />
+        } @else {
+          <div class="stats stats--faixas">
+            @for (faixa of faixasOrdenadas(i); track faixa.nome) {
+              <clin-stat-card [label]="'Atraso ' + faixa.nome + ' dias'" [value]="brl(faixa.valor)" />
+            }
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Competência</th>
+                <th>Valor</th>
+                <th>Vencimento</th>
+                <th>Atraso</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of i.itens; track item.mensalidadeId) {
+                <tr>
+                  <td>{{ item.pacienteNome }}</td>
+                  <td>{{ item.competencia }}</td>
+                  <td>{{ brl(item.valor) }}</td>
+                  <td>{{ item.dataVencimento | date: 'dd/MM/yyyy' }}</td>
+                  <td>
+                    <span class="badge {{ item.diasAtraso > 60 ? 'badge--danger' : 'badge--warning' }}">
+                      {{ item.diasAtraso }} dias
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       }
     </section>
   `,
@@ -119,7 +178,10 @@ function brl(valor: number): string {
     .section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
     .section__title { font-size: 1.05rem; }
     .cobranca { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; align-items: end; }
-    .acoes { display: flex; gap: 0.4rem; }
+    .acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .faturamento { display: flex; align-items: center; gap: 0.75rem; }
+    .hint-faturamento { color: var(--clin-text-muted); font-size: 0.85rem; }
+    .stats--faixas { margin-bottom: 1rem; }
   `,
 })
 export class FinanceiroPageComponent {
@@ -130,6 +192,9 @@ export class FinanceiroPageComponent {
   readonly competencia = signal(this.mesAtual());
   readonly resumo = signal<FinanceiroResumo | null>(null);
   readonly mensalidades = signal<Mensalidade[]>([]);
+  readonly inadimplencia = signal<Inadimplencia | null>(null);
+  readonly faturando = signal(false);
+  readonly mensagemFaturamento = signal('');
 
   readonly cobrancaForm = this.fb.group({
     paciente: ['', Validators.required],
@@ -145,6 +210,13 @@ export class FinanceiroPageComponent {
     return new Date().toISOString().slice(0, 7);
   }
 
+  faixasOrdenadas(i: Inadimplencia): { nome: string; valor: number }[] {
+    const ordem = ['1-30', '31-60', '61-90', '90+'];
+    return Object.entries(i.porFaixa)
+      .map(([nome, valor]) => ({ nome, valor }))
+      .sort((a, b) => ordem.indexOf(a.nome) - ordem.indexOf(b.nome));
+  }
+
   mudarCompetencia(evento: Event): void {
     this.competencia.set((evento.target as HTMLInputElement).value);
     this.recarregar();
@@ -156,7 +228,39 @@ export class FinanceiroPageComponent {
     this.financeiro.resumo(mes).subscribe(r => this.resumo.set(r));
     this.financeiro.listarMensalidades(mes).subscribe(lista => this.mensalidades.set(lista));
     this.financeiro.listarContas(mes).subscribe(() => undefined);
+    this.financeiro.inadimplencia().subscribe(i => this.inadimplencia.set(i));
     void dia;
+  }
+
+  gerarFaturamento(): void {
+    this.faturando.set(true);
+    this.mensagemFaturamento.set('');
+    this.financeiro.faturarRecorrente(this.competencia()).subscribe({
+      next: resultado => {
+        this.faturando.set(false);
+        this.mensagemFaturamento.set(
+          `${resultado.geradas} mensalidade(s) gerada(s), ${resultado.jaExistentes} já existente(s).`,
+        );
+        this.recarregar();
+      },
+      error: () => this.faturando.set(false),
+    });
+  }
+
+  emitirCobranca(m: Mensalidade, tipo: 'Pix' | 'Boleto'): void {
+    this.financeiro.emitirCobranca(m.id, tipo).subscribe({
+      next: cobranca => {
+        const codigo = cobranca.pixCopiaECola ?? cobranca.boletoLinhaDigitavel ?? '';
+        const rotulo = tipo === 'Pix' ? 'Copia e cola' : 'Linha digitável';
+        if (navigator.clipboard) {
+          void navigator.clipboard.writeText(codigo);
+          alert(`${rotulo} copiado para a área de transferência:\n\n${codigo}`);
+        } else {
+          prompt(`${rotulo}:`, codigo);
+        }
+      },
+      error: (erro: Error) => alert(erro.message),
+    });
   }
 
   cobrar(): void {
