@@ -35,6 +35,22 @@ public sealed class SecurityPerformanceIntegrationTests : IClassFixture<ResetDb>
     }
 
     [Fact]
+    public async Task Health_live_e_ready_respondem_ok()
+    {
+        var client = _fixture.CreateClient();
+
+        var live = await client.GetAsync("/health/live");
+        live.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var ready = await client.GetAsync("/health/ready");
+        ready.StatusCode.Should().Be(HttpStatusCode.OK,
+            "readiness valida conectividade com o Postgres do testcontainer");
+
+        var health = await client.GetAsync("/health");
+        health.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
     public async Task Listagem_de_pacientes_respeita_limite()
     {
         var seed = await _fixture.SeedClinicaAsync("Clínica Paginação");

@@ -8,6 +8,9 @@ using Clinica.CrossCutting;
 using Clinica.Persistence;
 using Clinica.Persistence.Initialization;
 using Clinica.Application.Common.Interfaces;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +42,24 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck<Clinica.Persistence.HealthChecks.DatabaseHealthCheck>("postgres");
+
+// OpenTelemetry → OTLP: ativado apenas quando o endpoint está configurado
+// (padrão OTEL_EXPORTER_OTLP_ENDPOINT). Sem ele, custo zero no boot.
+if (!string.IsNullOrWhiteSpace(
+        builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
+{
+    builder.Services.AddOpenTelemetry()
+        .ConfigureResource(resource => resource.AddService("clinica-api"))
+        .WithMetrics(metrics => metrics
+            .AddAspNetCoreInstrumentation()
+            .AddMeter("Clinica.Api")
+            .AddOtlpExporter())
+        .WithTracing(tracing => tracing
+            .AddAspNetCoreInstrumentation()
+            .AddOtlpExporter());
+}
 
 // Rate limiting: login restrito (força bruta) + teto global por IP.
 // Desativado no ambiente Testing para não interferir nas suítes paralelas.
@@ -147,6 +167,13 @@ app.UseMiddleware<IdempotencyMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.MapControllers();
+// Liveness: processo vivo (sem checar dependências).
+app.MapHealthChecks("/health/live");
+// Readiness: pronto para receber tráfego (depende do Postgres).
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = registration => registration.Name == "postgres",
+});
 app.MapHealthChecks("/health");
 
 app.Run();

@@ -89,3 +89,51 @@ kubectl apply -k k8s/modules/web
 ```
 
 Ver README dos subprojetos para detalhes de cada camada.
+
+### Health checks
+
+| Endpoint       | Uso                  | Verifica                          |
+| -------------- | -------------------- | --------------------------------- |
+| `/health/live` | livenessProbe (k8s)  | processo vivo                     |
+| `/health/ready`| readinessProbe (k8s) | conectividade com Postgres        |
+| `/health`      | compat               | tudo                              |
+
+### Observabilidade (OTLP)
+
+Métricas (`api.request.duration`, `api.request.total`) e traces são
+exportadas via OTLP quando o endpoint está configurado:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+```
+
+Sem a variável, o pipeline de telemetria não é registrado (custo zero).
+
+### Backup & restore (Postgres)
+
+```bash
+# Backup (diário, retenção 30 dias)
+kubectl exec -n clinica deploy/clinica-postgres -- \
+  pg_dump -U clinica -Fc clinica > backup-$(date +%F).dump
+
+# Restore
+kubectl exec -i -n clinica deploy/clinica-postgres -- \
+  pg_restore -U clinica -d clinica --clean --if-exists < backup-2026-08-21.dump
+```
+
+### Rotação de secrets
+
+Todos os segredos chegam por variáveis de ambiente (Secret `clinica-secrets`);
+nenhum valor sensível vive no repositório:
+
+| Secret                        | Variável                            |
+| ----------------------------- | ----------------------------------- |
+| Senha do banco                | `ConnectionStrings__Default`        |
+| Chave de assinatura JWT       | `JWT__SecretKey`                    |
+| Segredo HMAC dos webhooks     | `Webhooks__SecretKey`               |
+| Bootstrap de admin (opcional) | `AdminBootstrap__Email` / `__Senha` |
+
+Rotação: atualize o Secret e faça rollout restart. A troca de
+`JWT__SecretKey` invalida sessões ativas (usuários refazem login);
+a de `Webhooks__SecretKey` deve ser coordenada com o PSP para evitar
+rejeição de webhooks em trânsito.
