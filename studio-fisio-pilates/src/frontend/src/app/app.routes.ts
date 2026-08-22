@@ -9,6 +9,16 @@ export const routes: Routes = [
     loadComponent: () => import('./modules/auth/pages/login.component').then(m => m.LoginComponent),
   },
   {
+    path: 'recuperar-senha',
+    loadComponent: () =>
+      import('./modules/auth/pages/recuperar-senha.component').then(m => m.RecuperarSenhaComponent),
+  },
+  {
+    path: 'redefinir-senha',
+    loadComponent: () =>
+      import('./modules/auth/pages/redefinir-senha.component').then(m => m.RedefinirSenhaComponent),
+  },
+  {
     path: '',
     canActivate: [authGuard, tenantGuard],
     loadComponent: () => import('./modules/layout/shell.component').then(m => m.ShellComponent),

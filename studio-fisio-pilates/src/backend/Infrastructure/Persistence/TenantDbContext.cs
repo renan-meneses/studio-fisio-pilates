@@ -54,6 +54,8 @@ public class TenantDbContext : DbContext, IApplicationDbContext
 
     public DbSet<WaitlistEntry> WaitlistEntries => Set<WaitlistEntry>();
 
+    public DbSet<TokenRedefinicaoSenha> TokensRedefinicaoSenha => Set<TokenRedefinicaoSenha>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(typeof(TenantDbContext).Assembly);

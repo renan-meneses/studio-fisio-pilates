@@ -1,21 +1,19 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AuthService, Credenciais } from '../../../core/services/auth.service';
-import { TenantService } from '../../../core/services/tenant.service';
-import { ThemeService } from '../../../core/services/theme.service';
+import { RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
-  selector: 'clin-login',
+  selector: 'clin-recuperar-senha',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
     <div class="login-page">
       <form class="login-card" [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="login-card__brand">
           <div class="login-card__logo">Clínica<span>SaaS</span></div>
-          <h1>Entrar</h1>
-          <p>Gestão de fisioterapia e pilates</p>
+          <h1>Recuperar senha</h1>
+          <p>Enviaremos um token de redefinição para o seu e-mail</p>
         </div>
 
         <div class="form-group">
@@ -23,20 +21,17 @@ import { ThemeService } from '../../../core/services/theme.service';
           <input id="email" type="email" formControlName="email" autocomplete="email" />
         </div>
 
-        <div class="form-group">
-          <label for="senha">Senha</label>
-          <input id="senha" type="password" formControlName="senha" autocomplete="current-password" />
-        </div>
-
-        @if (erro()) {
-          <p class="login-card__error">{{ erro() }}</p>
+        @if (enviado()) {
+          <p class="login-card__ok">
+            Se o e-mail estiver cadastrado, você receberá as instruções em instantes.
+          </p>
         }
 
         <button class="btn btn--primary login-card__submit" type="submit" [disabled]="form.invalid || carregando()">
-          {{ carregando() ? 'Entrando…' : 'Entrar' }}
+          {{ carregando() ? 'Enviando…' : enviado() ? 'Reenviar' : 'Enviar instruções' }}
         </button>
 
-        <a class="login-card__link" routerLink="/recuperar-senha">Esqueci minha senha</a>
+        <a class="login-card__link" routerLink="/login">Voltar ao login</a>
       </form>
     </div>
   `,
@@ -63,7 +58,7 @@ import { ThemeService } from '../../../core/services/theme.service';
     .login-card h1 { font-size: 1.4rem; margin-top: 0.75rem; }
     .login-card p { margin: 0.25rem 0 0; color: var(--clin-text-muted); }
     .login-card__submit { width: 100%; justify-content: center; margin-top: 0.5rem; }
-    .login-card__error { color: var(--clin-danger); font-size: 0.85rem; margin: 0.5rem 0; }
+    .login-card__ok { color: var(--clin-success, #16a34a); font-size: 0.85rem; margin: 0.5rem 0; }
     .login-card__link {
       display: block;
       margin-top: 1rem;
@@ -74,19 +69,15 @@ import { ThemeService } from '../../../core/services/theme.service';
     }
   `,
 })
-export class LoginComponent {
+export class RecuperarSenhaComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
-  private readonly tenant = inject(TenantService);
-  private readonly theme = inject(ThemeService);
-  private readonly router = inject(Router);
 
   readonly carregando = signal(false);
-  readonly erro = signal('');
+  readonly enviado = signal(false);
 
   readonly form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    senha: ['', Validators.required],
   });
 
   onSubmit(): void {
@@ -94,18 +85,13 @@ export class LoginComponent {
       return;
     }
     this.carregando.set(true);
-    this.erro.set('');
-    this.auth.login(this.form.getRawValue() as Credenciais).subscribe({
-      next: login => {
-        this.tenant.setTenant({ tenantId: login.tenantId, tenantNome: login.tenantNome });
-        this.theme.sincronizar(login.tema);
+    this.auth.solicitarRedefinicao(this.form.getRawValue().email!).subscribe({
+      next: () => {
+        // Mensagem genérica mesmo para e-mail inexistente (anti-enumeração).
+        this.enviado.set(true);
         this.carregando.set(false);
-        void this.router.navigate(['/agenda']);
       },
-      error: (erro: Error) => {
-        this.carregando.set(false);
-        this.erro.set(erro.message);
-      },
+      error: () => this.carregando.set(false),
     });
   }
 }

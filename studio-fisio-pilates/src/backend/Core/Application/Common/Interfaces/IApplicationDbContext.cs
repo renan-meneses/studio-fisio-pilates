@@ -54,5 +54,7 @@ public interface IApplicationDbContext
 
     DbSet<WaitlistEntry> WaitlistEntries { get; }
 
+    DbSet<TokenRedefinicaoSenha> TokensRedefinicaoSenha { get; }
+
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

@@ -26,6 +26,14 @@ export class AuthService {
     SessionStore.clear();
   }
 
+  solicitarRedefinicao(email: string): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/auth/recuperar-senha`, { email });
+  }
+
+  redefinirSenha(email: string, token: string, novaSenha: string): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/auth/redefinir-senha`, { email, token, novaSenha });
+  }
+
   atualizarTema(tema: 'Claro' | 'Escuro'): Observable<void> {
     return this.http.patch<void>(`${environment.apiUrl}/auth/tema`, { tema });
   }

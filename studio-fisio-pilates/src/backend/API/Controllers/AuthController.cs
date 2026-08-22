@@ -30,6 +30,29 @@ public sealed class AuthController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>
+    /// Solicita redefinição de senha. Resposta é sempre 204 — exista ou não
+    /// o e-mail — para evitar enumeração de usuários.
+    /// </summary>
+    [HttpPost("recuperar-senha")]
+    [AllowAnonymous]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> RecuperarSenha(SolicitarRedefinicaoCommand command, CancellationToken ct)
+    {
+        await _mediator.Send(command, ct);
+        return NoContent();
+    }
+
+    /// <summary>Consome o token de redefinição (uso único, 1h) e define a nova senha.</summary>
+    [HttpPost("redefinir-senha")]
+    [AllowAnonymous]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> RedefinirSenha(RedefinirSenhaTokenCommand command, CancellationToken ct)
+    {
+        await _mediator.Send(command, ct);
+        return NoContent();
+    }
+
     /// <summary>Retorna o tenant/usuário autenticado (diagnóstico de claims).</summary>
     [HttpGet("me")]
     public IActionResult Me()

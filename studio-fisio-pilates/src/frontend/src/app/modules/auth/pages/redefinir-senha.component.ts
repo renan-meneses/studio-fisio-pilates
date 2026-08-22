@@ -1,42 +1,52 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AuthService, Credenciais } from '../../../core/services/auth.service';
-import { TenantService } from '../../../core/services/tenant.service';
-import { ThemeService } from '../../../core/services/theme.service';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
-  selector: 'clin-login',
+  selector: 'clin-redefinir-senha',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
     <div class="login-page">
       <form class="login-card" [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="login-card__brand">
           <div class="login-card__logo">Clínica<span>SaaS</span></div>
-          <h1>Entrar</h1>
-          <p>Gestão de fisioterapia e pilates</p>
+          <h1>Redefinir senha</h1>
+          <p>Digite a nova senha para concluir</p>
         </div>
 
-        <div class="form-group">
-          <label for="email">E-mail</label>
-          <input id="email" type="email" formControlName="email" autocomplete="email" />
-        </div>
+        @if (!tokenValido()) {
+          <p class="login-card__error">
+            Link inválido. Solicite uma nova redefinição de senha.
+          </p>
+          <a class="login-card__link" routerLink="/recuperar-senha">Solicitar novo token</a>
+        } @else {
+          <div class="form-group">
+            <label for="senha">Nova senha</label>
+            <input
+              id="senha"
+              type="password"
+              formControlName="senha"
+              autocomplete="new-password"
+              placeholder="Mínimo de 8 caracteres"
+            />
+          </div>
 
-        <div class="form-group">
-          <label for="senha">Senha</label>
-          <input id="senha" type="password" formControlName="senha" autocomplete="current-password" />
-        </div>
+          @if (erro()) {
+            <p class="login-card__error">{{ erro() }}</p>
+          }
 
-        @if (erro()) {
-          <p class="login-card__error">{{ erro() }}</p>
+          <button
+            class="btn btn--primary login-card__submit"
+            type="submit"
+            [disabled]="form.invalid || carregando()"
+          >
+            {{ carregando() ? 'Redefinindo…' : 'Redefinir senha' }}
+          </button>
         }
 
-        <button class="btn btn--primary login-card__submit" type="submit" [disabled]="form.invalid || carregando()">
-          {{ carregando() ? 'Entrando…' : 'Entrar' }}
-        </button>
-
-        <a class="login-card__link" routerLink="/recuperar-senha">Esqueci minha senha</a>
+        <a class="login-card__link" routerLink="/login">Voltar ao login</a>
       </form>
     </div>
   `,
@@ -74,19 +84,23 @@ import { ThemeService } from '../../../core/services/theme.service';
     }
   `,
 })
-export class LoginComponent {
+export class RedefinirSenhaComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
-  private readonly tenant = inject(TenantService);
-  private readonly theme = inject(ThemeService);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   readonly carregando = signal(false);
   readonly erro = signal('');
+  readonly concluido = signal(false);
+
+  readonly email = this.route.snapshot.queryParamMap.get('email') ?? '';
+  readonly token = this.route.snapshot.queryParamMap.get('token') ?? '';
+
+  readonly tokenValido = signal(this.email.length > 0 && this.token.length > 0);
 
   readonly form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    senha: ['', Validators.required],
+    senha: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   onSubmit(): void {
@@ -95,16 +109,14 @@ export class LoginComponent {
     }
     this.carregando.set(true);
     this.erro.set('');
-    this.auth.login(this.form.getRawValue() as Credenciais).subscribe({
-      next: login => {
-        this.tenant.setTenant({ tenantId: login.tenantId, tenantNome: login.tenantNome });
-        this.theme.sincronizar(login.tema);
+    this.auth.redefinirSenha(this.email, this.token, this.form.getRawValue().senha!).subscribe({
+      next: () => {
         this.carregando.set(false);
-        void this.router.navigate(['/agenda']);
+        void this.router.navigate(['/login']);
       },
-      error: (erro: Error) => {
+      error: (e: Error) => {
         this.carregando.set(false);
-        this.erro.set(erro.message);
+        this.erro.set(e.message);
       },
     });
   }
