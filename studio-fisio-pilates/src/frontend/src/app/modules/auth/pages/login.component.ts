@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService, Credenciais } from '../../../core/services/auth.service';
 import { TenantService } from '../../../core/services/tenant.service';
 import { ThemeService } from '../../../core/services/theme.service';
@@ -8,7 +8,7 @@ import { ThemeService } from '../../../core/services/theme.service';
 @Component({
   selector: 'clin-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
     <div class="login-page">
       <form class="login-card" [formGroup]="form" (ngSubmit)="onSubmit()">

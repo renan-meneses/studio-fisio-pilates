@@ -1,0 +1,171 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+
+jobs:
+  backend:
+    name: Backend — build e testes
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: studio-fisio-pilates
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release
+      - run: dotnet test tests/backend/UnitTests -c Release --no-build -v q
+      # Testcontainers usa o Docker pré-instalado no runner.
+      - run: dotnet test tests/backend/IntegrationTests -c Release --no-build -v q
+
+  frontend:
+    name: Frontend — build, unitários e lint de tipos
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: studio-fisio-pilates/src/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: studio-fisio-pilates/src/frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm test -- --watch=false --browsers=ChromeHeadless
+
+  e2e:
+    name: E2E — Cypress contra stack real
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    defaults:
+      run:
+        working-directory: studio-fisio-pilates
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: clinica_e2e
+          POSTGRES_USER: clinica
+          POSTGRES_PASSWORD: clinica
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U clinica -d clinica_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CONNECTION_STRING: Host=localhost;Port=5432;Database=clinica_e2e;Username=clinica;Password=clinica
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: studio-fisio-pilates/src/frontend/package-lock.json
+
+      - name: Publicar API
+        run: dotnet publish src/backend/API -c Release -o "$RUNNER_TEMP/api"
+
+      - name: Subir API (migração + seed automático)
+        working-directory: studio-fisio-pilates
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          ASPNETCORE_URLS: http://localhost:8080
+          JWT__Issuer: clinica-api
+          JWT__Audience: clinica-web
+          JWT__SecretKey: chave-de-ci-com-no-minimo-32-caracteres!!
+        run: |
+          nohup dotnet "$RUNNER_TEMP/api/API.dll" > "$RUNNER_TEMP/api.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/api.pid"
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8080/health >/dev/null && echo "API saudável" && exit 0
+            sleep 2
+          done
+          echo "API não ficou saudável"; cat "$RUNNER_TEMP/api.log"; exit 1
+
+      - name: Subir frontend (ng serve)
+        working-directory: studio-fisio-pilates/src/frontend
+        run: |
+          nohup npx ng serve --port 4200 > "$RUNNER_TEMP/ng.log" 2>&1 &
+          for i in $(seq 1 90); do
+            curl -sf http://localhost:4200 >/dev/null && echo "Frontend no ar" && exit 0
+            sleep 2
+          done
+          echo "Frontend não subiu"; cat "$RUNNER_TEMP/ng.log"; exit 1
+
+      - name: Cypress e2e
+        working-directory: studio-fisio-pilates/src/frontend
+        run: npx cypress install && npx cypress run
+
+      - name: Upload de artefatos em falha
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts
+          path: |
+            studio-fisio-pilates/src/frontend/cypress/screenshots
+            studio-fisio-pilates/src/frontend/cypress/videos
+          if-no-files-found: ignore
+          retention-days: 7
+
+  docker:
+    name: Docker — build das imagens
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login no GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build API
+        uses: docker/build-push-action@v6
+        with:
+          context: studio-fisio-pilates/src/backend
+          file: studio-fisio-pilates/src/backend/API/Dockerfile
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/clinica-api:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/clinica-api:latest
+
+      - name: Build Web
+        uses: docker/build-push-action@v6
+        with:
+          context: studio-fisio-pilates/src/frontend
+          file: studio-fisio-pilates/src/frontend/Dockerfile
+          push: ${{ github.event_name == 'push' }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/clinica-web:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/clinica-web:latest
