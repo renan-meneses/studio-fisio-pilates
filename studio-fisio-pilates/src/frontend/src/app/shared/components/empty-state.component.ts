@@ -4,25 +4,17 @@ import { Component, input } from '@angular/core';
   selector: 'clin-empty-state',
   standalone: true,
   template: `
-    <div class="empty-state">
-      <div class="empty-state__icon">{{ icone() }}</div>
-      <p class="empty-state__title">{{ titulo() }}</p>
-      <p class="empty-state__hint">{{ hint() }}</p>
+    <div class="flex flex-col items-center gap-2 rounded-2xl px-4 py-12 text-center">
+      <div
+        class="flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl ring-1 ring-inset ring-slate-200 dark:bg-slate-800/60 dark:ring-slate-700"
+      >
+        {{ icone() }}
+      </div>
+      <p class="font-bold">{{ titulo() }}</p>
+      @if (hint()) {
+        <p class="max-w-sm text-sm text-slate-500 dark:text-slate-400">{{ hint() }}</p>
+      }
     </div>
-  `,
-  styles: `
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 0.5rem;
-      padding: 3rem 1rem;
-      color: var(--clin-text-muted);
-    }
-    .empty-state__icon { font-size: 2.4rem; }
-    .empty-state__title { font-weight: 700; color: var(--clin-text); }
-    .empty-state__hint { font-size: 0.85rem; }
   `,
 })
 export class EmptyStateComponent {

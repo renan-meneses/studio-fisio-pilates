@@ -10,18 +10,29 @@ const HORARIOS: string[] = Array.from({ length: 48 }, (_, i) => {
   selector: 'clin-time-picker-modal',
   standalone: true,
   template: `
-    <div class="time-picker__overlay" (click)="fechado.emit()">
-      <div class="time-picker" (click)="$event.stopPropagation()">
-        <div class="time-picker__header">
-          <span>Selecione o horário (24h)</span>
-          <button class="btn btn--outline" type="button" (click)="fechado.emit()">✕</button>
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm animate-fade-in" (click)="fechado.emit()">
+      <div
+        class="w-full max-w-md max-h-[80vh] overflow-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-pop dark:border-slate-800 dark:bg-slate-900 animate-scale-in"
+        (click)="$event.stopPropagation()"
+        role="dialog"
+        aria-label="Selecione o horário"
+      >
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <span class="font-bold">Selecione o horário (24h)</span>
+          <button class="btn btn--ghost btn--sm !px-2.5" type="button" (click)="fechado.emit()" aria-label="Fechar">
+            ✕
+          </button>
         </div>
-        <div class="time-picker__grid">
+        <div class="grid grid-cols-4 gap-1.5 sm:max-[480px]:grid-cols-3">
           @for (h of HORARIOS; track h) {
             <button
               type="button"
-              class="time-picker__slot"
-              [class.time-picker__slot--ativo]="h === valor()"
+              class="cursor-pointer rounded-lg border px-1 py-2 font-mono text-[13px] tabular-nums transition-colors"
+              [class]="
+                h === valor()
+                  ? 'border-teal-500 bg-teal-600 font-bold text-white'
+                  : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-teal-400 hover:bg-teal-50 hover:text-teal-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-teal-500/15 dark:hover:text-teal-300'
+              "
               (click)="selecionado.emit(h)"
             >
               {{ h }}
@@ -30,66 +41,6 @@ const HORARIOS: string[] = Array.from({ length: 48 }, (_, i) => {
         </div>
       </div>
     </div>
-  `,
-  styles: `
-    .time-picker__overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.55);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 1rem;
-    }
-    .time-picker {
-      background: var(--clin-surface);
-      border: 1px solid var(--clin-border);
-      border-radius: 14px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-      padding: 1.25rem;
-      width: 100%;
-      max-width: 460px;
-      max-height: 80vh;
-      overflow: auto;
-    }
-    .time-picker__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      font-weight: 700;
-      color: var(--clin-text);
-    }
-    .time-picker__grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.4rem;
-    }
-    .time-picker__slot {
-      padding: 0.5rem;
-      border: 1px solid var(--clin-border);
-      border-radius: 8px;
-      background: var(--clin-surface-alt, #f8fafc);
-      color: var(--clin-text);
-      font: inherit;
-      font-size: 0.85rem;
-      font-variant-numeric: tabular-nums;
-      cursor: pointer;
-      transition: background 0.12s ease, color 0.12s ease;
-
-      &:hover { background: var(--clin-primary); color: #fff; }
-      &.time-picker__slot--ativo {
-        background: var(--clin-primary);
-        border-color: var(--clin-primary);
-        color: #fff;
-        font-weight: 700;
-      }
-    }
-    @media (max-width: 480px) {
-      .time-picker__grid { grid-template-columns: repeat(3, 1fr); }
-    }
   `,
 })
 export class TimePickerModalComponent {

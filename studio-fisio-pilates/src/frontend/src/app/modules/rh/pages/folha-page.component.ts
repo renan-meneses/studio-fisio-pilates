@@ -17,15 +17,15 @@ function brl(valor: number): string {
     <clin-page-header titulo="Folha de pagamento" subtitulo="Processamento mensal dos salários">
       <input
         type="month"
-        class="filter"
+        class="rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-900"
         [value]="competencia()"
         (change)="mudarCompetencia($event)"
       />
     </clin-page-header>
 
     <section class="card">
-      <h2 class="titulo">Processar folha</h2>
-      <form [formGroup]="form" (ngSubmit)="processar()" class="grid">
+      <h2 class="mb-3 text-lg font-semibold text-slate-900 dark:text-slate-100">Processar folha</h2>
+      <form [formGroup]="form" (ngSubmit)="processar()" class="grid grid-cols-[2fr_1fr_1fr_auto] items-end gap-4">
         <div class="form-group">
           <label>Funcionário *</label>
           <select formControlName="funcionarioId">
@@ -48,7 +48,7 @@ function brl(valor: number): string {
     </section>
 
     <section class="card">
-      <h2 class="titulo">Folha de {{ competencia() }}</h2>
+      <h2 class="mb-3 text-lg font-semibold text-slate-900 dark:text-slate-100">Folha de {{ competencia() }}</h2>
       @if (folha().length === 0) {
         <clin-empty-state
           icone="📄"
@@ -90,17 +90,6 @@ function brl(valor: number): string {
         </table>
       }
     </section>
-  `,
-  styles: `
-    .filter {
-      padding: 0.55rem 0.75rem;
-      border: 1px solid var(--clin-border);
-      border-radius: 8px;
-      font: inherit;
-      background: var(--clin-surface);
-    }
-    .titulo { font-size: 1.05rem; margin-bottom: 0.75rem; }
-    .grid { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; align-items: end; }
   `,
 })
 export class FolhaPageComponent {

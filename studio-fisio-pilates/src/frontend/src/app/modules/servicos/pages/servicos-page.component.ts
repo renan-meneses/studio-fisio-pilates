@@ -12,9 +12,9 @@ import { Servico } from '../models/servico.model';
   template: `
     <clin-page-header titulo="Serviços" subtitulo="Cadastro de serviços oferecidos pela clínica" />
 
-    <form class="card form" [formGroup]="form" (ngSubmit)="salvar()">
-      <h3 class="form__title">Novo serviço</h3>
-      <div class="form-grid">
+    <form class="card" [formGroup]="form" (ngSubmit)="salvar()">
+      <h3 class="mb-4 text-lg font-bold tracking-tight">Novo serviço</h3>
+      <div class="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
         <div class="form-group">
           <label>Nome</label>
           <input formControlName="nome" placeholder="Ex.: Pilates em grupo" />
@@ -23,15 +23,15 @@ import { Servico } from '../models/servico.model';
           <label>Valor (R$)</label>
           <input type="number" step="0.01" min="0" formControlName="valor" />
         </div>
-        <div class="form-group form-group--full">
+        <div class="form-group sm:col-span-2">
           <label>Descrição</label>
           <input formControlName="descricao" placeholder="Descrição opcional do serviço" />
         </div>
       </div>
       @if (erro()) {
-        <p class="form__error">{{ erro() }}</p>
+        <p class="field-error my-2">{{ erro() }}</p>
       }
-      <div class="form__actions">
+      <div class="flex justify-end">
         <button type="submit" class="btn btn--primary" [disabled]="form.invalid || carregando()">
           {{ carregando() ? 'Salvando…' : 'Salvar serviço' }}
         </button>
@@ -40,7 +40,7 @@ import { Servico } from '../models/servico.model';
 
     <div class="card">
       @if (carregando()) {
-        <p class="hint">Carregando…</p>
+        <p class="py-4 text-center text-sm text-slate-500 dark:text-slate-400">Carregando…</p>
       } @else if (servicos().length === 0) {
         <clin-empty-state icone="🧩" titulo="Nenhum serviço cadastrado" hint="Cadastre serviços para compor os planos." />
       } @else {
@@ -64,14 +64,6 @@ import { Servico } from '../models/servico.model';
         </table>
       }
     </div>
-  `,
-  styles: `
-    .form__title { margin-bottom: 1rem; font-size: 1.05rem; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
-    .form-group--full { grid-column: 1 / -1; }
-    .form__actions { display: flex; justify-content: flex-end; }
-    .form__error { color: var(--clin-danger); font-size: 0.85rem; margin: 0.5rem 0; }
-    .hint { color: var(--clin-text-muted); text-align: center; padding: 1rem 0; }
   `,
 })
 export class ServicosPageComponent {

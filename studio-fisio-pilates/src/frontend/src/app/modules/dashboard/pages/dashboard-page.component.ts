@@ -13,144 +13,90 @@ import { DashboardResumo, FaturamentoItem, OcupacaoDia, TopSessao } from '../mod
   template: `
     <clin-page-header titulo="Dashboard" subtitulo="Visão geral da clínica" />
 
-    <div class="stats">
+    <div class="grid gap-4 mb-4 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
       <clin-stat-card label="Pacientes ativos" [value]="resumo() ? texto(resumo()!.pacientesAtivos) : '—'" />
       <clin-stat-card label="Agendamentos hoje" [value]="resumo() ? texto(resumo()!.agendamentosHoje) : '—'" />
       <clin-stat-card label="Receita do mês" [value]="resumo() ? brl(resumo()!.receitaMes) : '—'" />
       <clin-stat-card label="Inadimplência" [value]="resumo() ? brl(resumo()!.inadimplencia) : '—'" />
     </div>
 
-    <section class="card">
-      <header class="section">
-        <h2 class="section__title">Faturamento mensal</h2>
-        <span class="legenda">
-          <span class="legenda__item"><i class="barra barra--receita"></i> Recebido</span>
-          <span class="legenda__item"><i class="barra barra--previsto"></i> Previsto</span>
+    <section class="card p-5">
+      <header class="flex items-center justify-between mb-3">
+        <h2 class="m-0 text-[1.05rem] font-semibold">Faturamento mensal</h2>
+        <span class="flex gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <span class="inline-flex items-center gap-1.5"><i class="inline-block w-3 h-3 rounded-[3px] bg-teal-500"></i> Recebido</span>
+          <span class="inline-flex items-center gap-1.5"><i class="inline-block w-3 h-3 rounded-[3px] bg-slate-300 dark:bg-slate-700"></i> Previsto</span>
         </span>
       </header>
       @if (faturamento().length === 0) {
         <clin-empty-state icone="📊" titulo="Sem dados de faturamento" hint="Gere mensalidades para visualizar o gráfico." />
       } @else {
-        <div class="grafico">
+        <div class="flex items-stretch gap-3 h-[220px] pt-2">
           @for (m of faturamento(); track m.competencia) {
-            <div class="grafico__coluna" [title]="rotuloCompetencia(m) + '\n' + brl(m.receita) + ' de ' + brl(m.previsto)">
-              <div class="grafico__barras">
-                <div class="barra-vertical barra--previsto" [style.height.%]="altura(m.previsto)"></div>
-                <div class="barra-vertical barra--receita" [style.height.%]="altura(m.receita)"></div>
+            <div class="flex-1 flex flex-col items-center gap-1.5 min-w-0" [title]="rotuloCompetencia(m) + '\n' + brl(m.receita) + ' de ' + brl(m.previsto)">
+              <div class="flex-1 w-full max-w-[56px] flex items-end justify-center gap-1">
+                <div class="w-[45%] min-h-[2px] rounded-t bg-slate-300 dark:bg-slate-700 transition-[height] duration-[400ms]" [style.height.%]="altura(m.previsto)"></div>
+                <div class="w-[45%] min-h-[2px] rounded-t bg-teal-500 transition-[height] duration-[400ms]" [style.height.%]="altura(m.receita)"></div>
               </div>
-              <span class="grafico__rotulo">{{ competenciaCurta(m.competencia) }}</span>
+              <span class="text-[0.72rem] whitespace-nowrap text-slate-500 dark:text-slate-400">{{ competenciaCurta(m.competencia) }}</span>
             </div>
           }
         </div>
       }
     </section>
 
-    <div class="duas-colunas">
-      <section class="card">
-        <header class="section">
-          <h2 class="section__title">Ocupação — últimos 14 dias</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+      <section class="card p-5">
+        <header class="mb-3">
+          <h2 class="m-0 text-[1.05rem] font-semibold">Ocupação — últimos 14 dias</h2>
         </header>
         @if (ocupacaoRecente().length === 0) {
           <clin-empty-state icone="📅" titulo="Sem agendamentos" hint="A agenda dos últimos dias aparecerá aqui." />
         } @else {
-          <div class="ocupacao">
+          <div class="flex items-stretch gap-[3px] h-40 pt-1">
             @for (d of ocupacaoRecente(); track d.data) {
               <div
-                class="ocupacao__dia"
+                class="flex-1 flex flex-col min-w-0"
                 [title]="dataCurta(d.data) + ': ' + d.total + ' sessões, ' + d.realizados + ' realizadas, ' + d.faltas + ' faltas'"
               >
-                <div class="ocupacao__barra-wrap">
+                <div class="flex-1 flex items-end bg-slate-200 dark:bg-slate-800 rounded-md overflow-hidden">
                   <div
-                    class="ocupacao__barra"
-                    [class.ocupacao__barra--cheia]="d.faltas === 0"
+                    class="w-full bg-teal-500/80 rounded-t transition-[height] duration-[400ms]"
+                    [class.!opacity-100]="d.faltas === 0"
                     [style.height.%]="alturaOcupacao(d.total)"
                   ></div>
                 </div>
-                <span class="ocupacao__label">{{ dataCurta(d.data) }}</span>
+                <span class="text-[0.62rem] text-center mt-0.5 text-slate-500 dark:text-slate-400">{{ dataCurta(d.data) }}</span>
               </div>
             }
           </div>
         }
       </section>
 
-      <section class="card">
-        <header class="section">
-          <h2 class="section__title">Top sessões por receita</h2>
+      <section class="card p-5">
+        <header class="mb-3">
+          <h2 class="m-0 text-[1.05rem] font-semibold">Top sessões por receita</h2>
         </header>
         @if (topSessoes().length === 0) {
           <clin-empty-state icone="🏆" titulo="Nenhuma sessão realizada" hint="Sessões realizadas serão ranqueadas aqui." />
         } @else {
-          <ul class="top-lista">
+          <ul class="list-none m-0 p-0 flex flex-col gap-3.5">
             @for (t of topSessoes(); track t.tipoSessao) {
-              <li class="top-item">
-                <div class="top-item__linha">
+              <li class="flex flex-col gap-1.5">
+                <div class="flex justify-between text-sm">
                   <span>{{ rotuloSessao(t.tipoSessao) }}</span>
                   <strong>{{ brl(t.receita) }}</strong>
                 </div>
-                <div class="top-item__barra-wrap">
-                  <div class="top-item__barra" [style.width.%]="largura(t.receita)"></div>
+                <div class="h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                  <div class="h-full bg-teal-500 rounded-full transition-[width] duration-[400ms]" [style.width.%]="largura(t.receita)"></div>
                 </div>
-                <span class="top-item__meta">{{ t.quantidade }} sessão(ões)</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">{{ t.quantidade }} sessão(ões)</span>
               </li>
             }
           </ul>
         }
       </section>
     </div>
-  `,
-  styles: `
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
-    .section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-    .section__title { margin: 0; font-size: 1.05rem; }
-    .legenda { display: flex; gap: 0.9rem; font-size: 0.8rem; color: var(--clin-text-muted); }
-    .legenda__item { display: inline-flex; align-items: center; gap: 0.35rem; }
-    .barra { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
-    .barra--receita { background: var(--clin-primary, #4f6ef7); }
-    .barra--previsto { background: var(--clin-border, #d5dbe6); }
-
-    .grafico {
-      display: flex;
-      align-items: stretch;
-      gap: 0.75rem;
-      height: 220px;
-      padding-top: 0.5rem;
-    }
-    .grafico__coluna {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.35rem;
-      min-width: 0;
-    }
-    .grafico__barras {
-      flex: 1;
-      width: 100%;
-      max-width: 56px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 4px;
-    }
-    .barra-vertical { width: 45%; min-height: 2px; border-radius: 4px 4px 0 0; transition: height 0.4s ease; }
-    .grafico__rotulo { font-size: 0.72rem; color: var(--clin-text-muted); white-space: nowrap; }
-
-    .duas-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
-    @media (max-width: 900px) { .duas-colunas { grid-template-columns: 1fr; } }
-
-    .ocupacao { display: flex; align-items: stretch; gap: 3px; height: 160px; padding-top: 0.25rem; }
-    .ocupacao__dia { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    .ocupacao__barra-wrap { flex: 1; display: flex; align-items: flex-end; background: var(--clin-surface-alt); border-radius: 4px; overflow: hidden; }
-    .ocupacao__barra { width: 100%; background: var(--clin-primary, #4f6ef7); opacity: 0.85; border-radius: 4px 4px 0 0; transition: height 0.4s ease; }
-    .ocupacao__barra--cheia { opacity: 1; }
-    .ocupacao__label { font-size: 0.62rem; color: var(--clin-text-muted); text-align: center; margin-top: 2px; }
-
-    .top-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
-    .top-item { display: flex; flex-direction: column; gap: 0.3rem; }
-    .top-item__linha { display: flex; justify-content: space-between; font-size: 0.92rem; }
-    .top-item__barra-wrap { height: 8px; background: var(--clin-surface-alt); border-radius: 4px; overflow: hidden; }
-    .top-item__barra { height: 100%; background: var(--clin-primary, #4f6ef7); border-radius: 4px; transition: width 0.4s ease; }
-    .top-item__meta { font-size: 0.78rem; color: var(--clin-text-muted); }
   `,
 })
 export class DashboardPageComponent {

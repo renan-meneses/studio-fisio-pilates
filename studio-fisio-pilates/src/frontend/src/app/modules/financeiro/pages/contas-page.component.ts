@@ -19,8 +19,8 @@ function brl(valor: number): string {
     </clin-page-header>
 
     <section class="card">
-      <h2 class="titulo">Nova conta</h2>
-      <form [formGroup]="form" (ngSubmit)="criar()" class="grid">
+      <h2 class="mb-3 text-lg font-bold tracking-tight">Nova conta</h2>
+      <form [formGroup]="form" (ngSubmit)="criar()" class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
         <div class="form-group">
           <label>Descrição *</label>
           <input formControlName="descricao" placeholder="Ex.: Aluguel do espaço" />
@@ -42,7 +42,7 @@ function brl(valor: number): string {
     </section>
 
     <section class="card">
-      <h2 class="titulo">Contas de {{ competencia() }}</h2>
+      <h2 class="mb-3 text-lg font-bold tracking-tight">Contas de {{ competencia() }}</h2>
       @if (contas().length === 0) {
         <clin-empty-state
           icone="🧾"
@@ -73,7 +73,7 @@ function brl(valor: number): string {
                 </td>
                 <td>
                   @if (!c.paga) {
-                    <button class="btn btn--primary" (click)="pagar(c)">Pagar</button>
+                    <button class="btn btn--primary btn--sm" (click)="pagar(c)">Pagar</button>
                   }
                 </td>
               </tr>
@@ -82,10 +82,6 @@ function brl(valor: number): string {
         </table>
       }
     </section>
-  `,
-  styles: `
-    .titulo { font-size: 1.05rem; margin-bottom: 0.75rem; }
-    .grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 1rem; align-items: end; }
   `,
 })
 export class ContasPageComponent {

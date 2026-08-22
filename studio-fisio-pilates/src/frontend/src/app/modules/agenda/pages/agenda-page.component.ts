@@ -21,7 +21,7 @@ const STATUS_BADGE: Record<string, string> = {
     <clin-page-header titulo="Agenda" subtitulo="Agendamentos do período selecionado">
       <input
         type="date"
-        class="agenda__filter"
+        class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 transition-colors focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/25 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-400"
         [value]="data()"
         (change)="mudarData($event)"
       />
@@ -30,7 +30,7 @@ const STATUS_BADGE: Record<string, string> = {
 
     @if (mostrarForm()) {
       <clin-agendamento-form
-        class="agenda__form"
+        class="mb-4 block"
         (salvo)="recarregar()"
         (cancelar)="mostrarForm.set(false)"
       />
@@ -38,7 +38,7 @@ const STATUS_BADGE: Record<string, string> = {
 
     <div class="card">
       @if (carregando()) {
-        <p class="agenda__hint">Carregando…</p>
+        <p class="py-8 text-center text-slate-500 dark:text-slate-400">Carregando…</p>
       } @else if (agendamentos().length === 0) {
         <clin-empty-state
           icone="🗓️"
@@ -76,15 +76,15 @@ const STATUS_BADGE: Record<string, string> = {
                 </td>
                 <td><span class="badge {{ badgeDe(ag.status) }}">{{ ag.status }}</span></td>
                 <td>
-                  <div class="agenda__actions">
+                  <div class="flex flex-wrap gap-2">
                     @if (ag.status === 'Agendado' || ag.status === 'Confirmado') {
                       @if (ag.status === 'Agendado') {
-                        <button class="btn btn--outline" (click)="confirmar(ag)">Confirmar</button>
+                        <button class="btn btn--outline btn--sm" (click)="confirmar(ag)">Confirmar</button>
                       }
-                      <button class="btn btn--primary" (click)="presenca(ag)">Presença</button>
-                      <button class="btn btn--danger" (click)="cancelar(ag)">Cancelar</button>
+                      <button class="btn btn--primary btn--sm" (click)="presenca(ag)">Presença</button>
+                      <button class="btn btn--danger btn--sm" (click)="cancelar(ag)">Cancelar</button>
                     } @else {
-                      <span class="agenda__hint">—</span>
+                      <span class="text-slate-500 dark:text-slate-400">—</span>
                     }
                   </div>
                 </td>
@@ -94,19 +94,6 @@ const STATUS_BADGE: Record<string, string> = {
         </table>
       }
     </div>
-  `,
-  styles: `
-    .agenda__filter {
-      padding: 0.55rem 0.75rem;
-      border: 1px solid var(--clin-border);
-      border-radius: 8px;
-      font: inherit;
-      background: var(--clin-surface);
-      color: var(--clin-text);
-    }
-    .agenda__form { margin-bottom: 1rem; }
-    .agenda__actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-    .agenda__hint { color: var(--clin-text-muted); text-align: center; padding: 1rem 0; }
   `,
 })
 export class AgendaPageComponent {

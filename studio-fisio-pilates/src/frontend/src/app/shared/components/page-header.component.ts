@@ -4,29 +4,17 @@ import { Component, input } from '@angular/core';
   selector: 'clin-page-header',
   standalone: true,
   template: `
-    <div class="page-header">
+    <div class="mb-6 flex items-start justify-between gap-4">
       <div>
-        <h1 class="page-header__title">{{ titulo() }}</h1>
+        <h1 class="text-2xl font-extrabold tracking-tight">{{ titulo() }}</h1>
         @if (subtitulo()) {
-          <p class="page-header__subtitle">{{ subtitulo() }}</p>
+          <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{{ subtitulo() }}</p>
         }
       </div>
-      <div class="page-header__actions">
+      <div class="flex shrink-0 flex-wrap items-center gap-2">
         <ng-content />
       </div>
     </div>
-  `,
-  styles: `
-    .page-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 1.25rem;
-    }
-    .page-header__title { font-size: 1.4rem; }
-    .page-header__subtitle { margin: 0.3rem 0 0; color: var(--clin-text-muted); }
-    .page-header__actions { display: flex; gap: 0.6rem; }
   `,
 })
 export class PageHeaderComponent {

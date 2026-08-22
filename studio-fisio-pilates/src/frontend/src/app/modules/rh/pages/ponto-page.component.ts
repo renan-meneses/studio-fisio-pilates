@@ -15,8 +15,8 @@ import { Funcionario, RegistroPonto } from '../models/rh.model';
     </clin-page-header>
 
     <section class="card">
-      <h2 class="titulo">Cadastrar funcionário</h2>
-      <form [formGroup]="funcionarioForm" (ngSubmit)="cadastrarFuncionario()" class="grid">
+      <h2 class="mb-3 text-lg font-semibold text-slate-900 dark:text-slate-100">Cadastrar funcionário</h2>
+      <form [formGroup]="funcionarioForm" (ngSubmit)="cadastrarFuncionario()" class="grid grid-cols-[2fr_1fr_1fr_1fr_auto] items-end gap-4">
         <div class="form-group">
           <label>Nome *</label>
           <input formControlName="nome" />
@@ -32,8 +32,8 @@ import { Funcionario, RegistroPonto } from '../models/rh.model';
     </section>
 
     <section class="card">
-      <h2 class="titulo">Lançar ponto</h2>
-      <form [formGroup]="pontoForm" (ngSubmit)="lancarPonto()" class="grid">
+      <h2 class="mb-3 text-lg font-semibold text-slate-900 dark:text-slate-100">Lançar ponto</h2>
+      <form [formGroup]="pontoForm" (ngSubmit)="lancarPonto()" class="grid grid-cols-[2fr_1fr_1fr_1fr_auto] items-end gap-4">
         <div class="form-group">
           <label>Funcionário *</label>
           <select formControlName="funcionarioId">
@@ -60,7 +60,7 @@ import { Funcionario, RegistroPonto } from '../models/rh.model';
     </section>
 
     <section class="card">
-      <h2 class="titulo">Registros do dia</h2>
+      <h2 class="mb-3 text-lg font-semibold text-slate-900 dark:text-slate-100">Registros do dia</h2>
       @if (registros().length === 0) {
         <clin-empty-state
           icone="🕐"
@@ -88,10 +88,6 @@ import { Funcionario, RegistroPonto } from '../models/rh.model';
         </table>
       }
     </section>
-  `,
-  styles: `
-    .titulo { font-size: 1.05rem; margin-bottom: 0.75rem; }
-    .grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 1rem; align-items: end; }
   `,
 })
 export class PontoPageComponent {

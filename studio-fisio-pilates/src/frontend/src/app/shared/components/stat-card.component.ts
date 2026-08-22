@@ -4,28 +4,19 @@ import { Component, input } from '@angular/core';
   selector: 'clin-stat-card',
   standalone: true,
   template: `
-    <div class="stat-card">
-      <div class="stat-card__header">
-        <span class="stat-card__label">{{ label() }}</span>
+    <div
+      class="flex flex-col gap-1 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card transition-shadow hover:shadow-lg dark:border-slate-800 dark:bg-slate-900"
+    >
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        {{ label() }}
+      </span>
+      <div class="flex items-baseline gap-2">
+        <span class="text-3xl font-extrabold tracking-tight text-teal-700 dark:text-teal-300">{{ value() }}</span>
+        @if (meta()) {
+          <span class="text-xs text-slate-400">{{ meta() }}</span>
+        }
       </div>
-      <div class="stat-card__value">{{ value() }}</div>
-      <div class="stat-card__meta">{{ meta() }}</div>
     </div>
-  `,
-  styles: `
-    .stat-card {
-      background: var(--clin-surface);
-      border: 1px solid var(--clin-border);
-      border-radius: var(--clin-radius);
-      box-shadow: var(--clin-shadow);
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-    .stat-card__label { font-size: 0.8rem; font-weight: 600; color: var(--clin-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .stat-card__value { font-size: 1.9rem; font-weight: 800; color: var(--clin-primary-dark); }
-    .stat-card__meta { font-size: 0.85rem; color: var(--clin-text-muted); }
   `,
 })
 export class StatCardComponent {

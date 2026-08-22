@@ -17,9 +17,9 @@ function diaSemanaDe(dataIso: string): number {
   standalone: true,
   imports: [ReactiveFormsModule, TimePickerModalComponent],
   template: `
-    <form class="card form" [formGroup]="form" (ngSubmit)="salvar()">
-      <h3 class="form__title">Novo agendamento</h3>
-      <div class="form-grid">
+    <form class="card" [formGroup]="form" (ngSubmit)="salvar()">
+      <h3 class="mb-4 text-lg font-semibold text-slate-900 dark:text-white">Novo agendamento</h3>
+      <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
         <div class="form-group">
           <label>Paciente *</label>
           <select formControlName="pacienteId">
@@ -74,16 +74,20 @@ function diaSemanaDe(dataIso: string): number {
         </div>
 
         @if (ehPilates(tipoSessao()) && turmaSelecionada()) {
-          <div class="form-group form-group--full">
-            <label class="turma__label">
+          <div class="form-group md:col-span-2">
+            <label>
               Horários da turma — {{ rotuloDia(diaSemana()) }} ({{ turmaSelecionada()!.nome }})
             </label>
             @if (horariosDoDia().length === 0) {
-              <p class="turma__vazio">Esta turma não tem horário nesse dia.</p>
+              <p class="text-sm text-slate-500 dark:text-slate-400">Esta turma não tem horário nesse dia.</p>
             } @else {
-              <div class="chip">
+              <div class="mt-1 flex flex-wrap gap-2">
                 @for (h of horariosDoDia(); track h.id) {
-                  <button type="button" class="chip__item" (click)="aplicarHorario(h)">
+                  <button
+                    type="button"
+                    class="cursor-pointer rounded-full border-none bg-teal-100 px-3 py-1.5 text-xs font-semibold text-teal-800 transition-colors hover:bg-teal-200 dark:bg-teal-500/15 dark:text-teal-300 dark:hover:bg-teal-500/25"
+                    (click)="aplicarHorario(h)"
+                  >
                     {{ horarioCurto(h.horaInicio) }} – {{ horarioCurto(h.horaFim) }}
                   </button>
                 }
@@ -95,7 +99,7 @@ function diaSemanaDe(dataIso: string): number {
         <div class="form-group">
           <label>Início</label>
           <input
-            class="time-input"
+            class="cursor-pointer tabular-nums"
             [value]="form.value.horaInicio ?? ''"
             placeholder="00:00"
             readonly
@@ -106,7 +110,7 @@ function diaSemanaDe(dataIso: string): number {
         <div class="form-group">
           <label>Fim</label>
           <input
-            class="time-input"
+            class="cursor-pointer tabular-nums"
             [value]="form.value.horaFim ?? ''"
             placeholder="00:00"
             readonly
@@ -119,17 +123,17 @@ function diaSemanaDe(dataIso: string): number {
           <input type="number" step="0.01" min="0" formControlName="valorSessao" />
         </div>
 
-        <div class="form-group form-group--full">
+        <div class="form-group md:col-span-2">
           <label>Observações</label>
           <input formControlName="observacoes" />
         </div>
       </div>
 
       @if (erro()) {
-        <p class="form__error">{{ erro() }}</p>
+        <p class="field-error my-2">{{ erro() }}</p>
       }
 
-      <div class="form__actions">
+      <div class="flex justify-end gap-2">
         <button type="button" class="btn btn--outline" (click)="cancelar.emit()">Fechar</button>
         <button type="submit" class="btn btn--primary" [disabled]="form.invalid || carregando()">
           {{ carregando() ? 'Salvando…' : 'Salvar' }}
@@ -143,39 +147,6 @@ function diaSemanaDe(dataIso: string): number {
         (selecionado)="escolherHorario($event)"
         (fechado)="horarioAberto.set(null)"
       />
-    }
-  `,
-  styles: `
-    .form__title { margin-bottom: 1rem; font-size: 1.05rem; }
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 1rem;
-    }
-    .form-group--full { grid-column: 1 / -1; }
-    .form__actions { display: flex; justify-content: flex-end; gap: 0.6rem; }
-    .form__error { color: var(--clin-danger); font-size: 0.85rem; margin: 0.5rem 0; }
-    .time-input {
-      background: var(--clin-surface);
-      cursor: pointer;
-      font-variant-numeric: tabular-nums;
-    }
-    .time-input:focus { background: var(--clin-surface); }
-    .turma__label { font-weight: 600; }
-    .turma__vazio { margin: 0.25rem 0 0; color: var(--clin-text-muted); font-size: 0.85rem; }
-    .chip { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; }
-    .chip__item {
-      border: none;
-      cursor: pointer;
-      background: var(--clin-primary-light);
-      color: var(--clin-primary-dark);
-      padding: 0.35rem 0.7rem;
-      border-radius: 999px;
-      font: inherit;
-      font-size: 0.85rem;
-      font-weight: 600;
-
-      &:hover { filter: brightness(0.95); }
     }
   `,
 })

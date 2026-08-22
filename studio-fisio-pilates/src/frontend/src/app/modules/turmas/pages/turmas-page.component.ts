@@ -20,9 +20,9 @@ interface LinhaHorario {
   template: `
     <clin-page-header titulo="Turmas" subtitulo="Turmas de Pilates e horários semanais" />
 
-    <form class="card form" [formGroup]="form" (ngSubmit)="salvar()">
-      <h3 class="form__title">Nova turma</h3>
-      <div class="form-grid">
+    <form class="card" [formGroup]="form" (ngSubmit)="salvar()">
+      <h3 class="mb-4 text-base font-semibold text-slate-800 dark:text-slate-100">Nova turma</h3>
+      <div class="grid gap-x-4 sm:grid-cols-2">
         <div class="form-group">
           <label>Nome *</label>
           <input formControlName="nome" placeholder="Ex.: Turma Segunda e Quarta 18h" />
@@ -39,7 +39,7 @@ interface LinhaHorario {
           <label>Capacidade por horário</label>
           <input formControlName="capacidade" type="number" min="1" max="50" />
         </div>
-        <div class="form-group form-group--full">
+        <div class="form-group sm:col-span-2">
           <label>Profissional</label>
           <select formControlName="profissionalId">
             <option value="">Sem profissional fixo</option>
@@ -49,11 +49,11 @@ interface LinhaHorario {
           </select>
         </div>
 
-        <div class="form-group form-group--full">
+        <div class="form-group sm:col-span-2">
           <label>Horários da turma</label>
-          <div class="horarios">
+          <div class="mb-2 flex flex-col gap-1.5">
             @for (linha of linhasHorarios; track linha; let i = $index) {
-              <div class="horario-linha">
+              <div class="grid grid-cols-2 items-center gap-1.5 sm:grid-cols-[1fr_1fr_1fr_auto]">
                 <select [value]="linha.diaSemana" (change)="linha.diaSemana = diaDe($event)">
                   @for (d of DIAS_SEMANA; track d.valor) {
                     <option [value]="d.valor">{{ d.rotulo }}</option>
@@ -65,16 +65,16 @@ interface LinhaHorario {
               </div>
             }
           </div>
-          <button type="button" class="btn btn--outline btn--sm" (click)="adicionarLinha()">
+          <button type="button" class="btn btn--outline btn--sm self-start" (click)="adicionarLinha()">
             + Adicionar horário
           </button>
         </div>
       </div>
 
       @if (erro()) {
-        <p class="form__error">{{ erro() }}</p>
+        <p class="field-error mt-2">{{ erro() }}</p>
       }
-      <div class="form__actions">
+      <div class="mt-2 flex justify-end">
         <button type="submit" class="btn btn--primary" [disabled]="form.invalid || carregando()">
           {{ carregando() ? 'Salvando…' : 'Salvar turma' }}
         </button>
@@ -82,46 +82,57 @@ interface LinhaHorario {
     </form>
 
     @if (carregando()) {
-      <p class="hint">Carregando…</p>
+      <p class="py-4 text-center text-sm text-slate-500 dark:text-slate-400">Carregando…</p>
     } @else if (turmas().length === 0) {
       <clin-empty-state icone="🧘" titulo="Nenhuma turma cadastrada" hint="Crie uma turma e defina os horários semanais." />
     } @else {
-      <div class="turmas">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         @for (t of turmas(); track t.id) {
-          <div class="card turma">
-            <div class="turma__head">
+          <div class="card flex flex-col gap-2.5 transition-shadow hover:shadow-lg">
+            <div class="flex items-start justify-between gap-4">
               <div>
-                <h3 class="turma__nome">{{ t.nome }}</h3>
-                <p class="turma__meta">
+                <h3 class="text-base font-bold text-slate-800 dark:text-slate-100">{{ t.nome }}</h3>
+                <p class="m-0 mt-0.5 text-sm text-slate-500 dark:text-slate-400">
                   {{ rotuloSessao(t.tipoSessao) }} · {{ t.profissionalNome ?? 'Sem profissional fixo' }}
                 </p>
               </div>
               <span class="badge badge--info">{{ t.capacidade }} vagas · {{ t.horarios.length }} horário(s)</span>
             </div>
-            <ul class="turma__horarios">
+            <ul class="m-0 flex list-none flex-col gap-1.5 p-0 text-sm">
               @for (h of t.horarios; track h.id) {
-                <li>
+                <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-100 px-2.5 py-1.5 dark:bg-slate-800/70">
                   <span>{{ rotuloDia(h.diaSemana) }} — {{ horarioCurto(h.horaInicio) }} às {{ horarioCurto(h.horaFim) }}</span>
-                  <button class="chip__remover" title="Remover horário" (click)="removerHorario(t, h)">✕</button>
+                  <button
+                    class="cursor-pointer border-none bg-transparent p-0 text-xs text-red-600 opacity-70 transition-opacity hover:opacity-100 dark:text-red-400"
+                    title="Remover horário"
+                    (click)="removerHorario(t, h)"
+                  >✕</button>
                 </li>
               }
             </ul>
-            <div class="waitlist">
-              <h4 class="waitlist__title">Lista de espera</h4>
+            <div class="mt-auto flex flex-col gap-1.5 border-t border-slate-200 pt-2.5 dark:border-slate-800">
+              <h4 class="m-0 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Lista de espera</h4>
               @if (waitlistDe(t.id).length === 0) {
-                <p class="waitlist__vazia">Nenhum aluno na fila.</p>
+                <p class="m-0 text-sm text-slate-500 dark:text-slate-400">Nenhum aluno na fila.</p>
               } @else {
-                <ul class="waitlist__lista">
+                <ul class="m-0 flex list-none flex-col gap-1.5 p-0 text-sm">
                   @for (entrada of waitlistDe(t.id); track entrada.id) {
-                    <li>
+                    <li class="flex items-center justify-between gap-2 rounded-lg bg-slate-100 px-2.5 py-1.5 dark:bg-slate-800/70">
                       <span>{{ $index + 1 }}. {{ entrada.pacienteNome }}</span>
-                      <button class="chip__remover" title="Remover da fila" (click)="sairDaFila(t.id, entrada.id)">✕</button>
+                      <button
+                        class="cursor-pointer border-none bg-transparent p-0 text-xs text-red-600 opacity-70 transition-opacity hover:opacity-100 dark:text-red-400"
+                        title="Remover da fila"
+                        (click)="sairDaFila(t.id, entrada.id)"
+                      >✕</button>
                     </li>
                   }
                 </ul>
               }
-              <div class="waitlist__entrar">
-                <select #seletorAluno (change)="null">
+              <div class="flex gap-1.5">
+                <select
+                  #seletorAluno (change)="null"
+                  class="w-full min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/25 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                >
                   <option value="">Selecionar aluno…</option>
                   @for (p of pacientes(); track p.id) {
                     <option [value]="p.id">{{ p.nome }}</option>
@@ -141,74 +152,6 @@ interface LinhaHorario {
         }
       </div>
     }
-  `,
-  styles: `
-    .form__title { margin-bottom: 1rem; font-size: 1.05rem; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
-    .form-group--full { grid-column: 1 / -1; }
-    .form__actions { display: flex; justify-content: flex-end; }
-    .form__error { color: var(--clin-danger); font-size: 0.85rem; margin: 0.5rem 0; }
-    .hint { color: var(--clin-text-muted); text-align: center; padding: 1rem 0; }
-    .horarios { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.5rem; }
-    .horario-linha {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto;
-      gap: 0.4rem;
-      align-items: center;
-    }
-    .turmas { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
-    .turma { display: flex; flex-direction: column; gap: 0.6rem; }
-    .turma__nome { font-size: 1.05rem; }
-    .turma__meta { margin: 0.25rem 0 0; color: var(--clin-text-muted); font-size: 0.85rem; }
-    .turma__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-    .turma__horarios { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
-    .turma__horarios li {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--clin-surface-alt);
-      border-radius: 8px;
-      padding: 0.45rem 0.7rem;
-      font-size: 0.85rem;
-    }
-    .chip__remover {
-      border: none;
-      background: transparent;
-      color: var(--clin-danger);
-      cursor: pointer;
-      font-size: 0.8rem;
-      padding: 0;
-      opacity: 0.7;
-    }
-    .chip__remover:hover { opacity: 1; }
-    .waitlist {
-      border-top: 1px solid var(--clin-border);
-      padding-top: 0.6rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-    .waitlist__title { margin: 0; font-size: 0.85rem; color: var(--clin-text-muted); }
-    .waitlist__vazia { margin: 0; font-size: 0.8rem; color: var(--clin-text-muted); }
-    .waitlist__lista {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      font-size: 0.85rem;
-    }
-    .waitlist__lista li {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--clin-surface-alt);
-      border-radius: 8px;
-      padding: 0.4rem 0.7rem;
-    }
-    .waitlist__entrar { display: flex; gap: 0.4rem; }
-    .waitlist__entrar select { flex: 1; padding: 0.35rem 0.5rem; border: 1px solid var(--clin-border); border-radius: 6px; background: var(--clin-surface); font: inherit; font-size: 0.85rem; }
   `,
 })
 export class TurmasPageComponent {

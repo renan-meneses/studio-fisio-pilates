@@ -15,62 +15,46 @@ import { PacienteResumo } from '../models/prontuario.model';
       subtitulo="Pacientes cadastrados e seus prontuários eletrônicos"
     />
 
-    <div class="card">
-      <div class="pacientes__busca">
-        <input
-          class="pacientes__input"
-          placeholder="Buscar paciente…"
-          (input)="buscar($event)"
-        />
-      </div>
+    <div class="mb-4 flex items-center gap-3">
+      <input
+        class="w-full max-w-[360px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800
+          placeholder:text-slate-400 transition-colors focus:border-teal-500 focus:outline-none focus:ring-2
+          focus:ring-teal-500/25 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-teal-400"
+        placeholder="Buscar paciente…"
+        (input)="buscar($event)"
+      />
+    </div>
 
-      @if (pacientes().length === 0) {
+    @if (pacientes().length === 0) {
+      <div class="card">
         <clin-empty-state
           icone="🧑‍⚕️"
           titulo="Nenhum paciente encontrado"
           hint="Ajuste o termo de busca ou adicione pacientes pelo cadastro."
         />
-      } @else {
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Paciente</th>
-              <th>Telefone</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (pac of pacientes(); track pac.id) {
-              <tr>
-                <td>{{ pac.nome }}</td>
-                <td>{{ pac.telefone ?? '—' }}</td>
-                <td>
-                  <span class="badge {{ pac.ativo ? 'badge--success' : 'badge--danger' }}">
-                    {{ pac.ativo ? 'Ativo' : 'Inativo' }}
-                  </span>
-                </td>
-                <td>
-                  <a class="btn btn--outline" [routerLink]="['/prontuarios', pac.id]">
-                    Abrir prontuário
-                  </a>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
-    </div>
-  `,
-  styles: `
-    .pacientes__busca { margin-bottom: 1rem; }
-    .pacientes__input {
-      width: 100%;
-      max-width: 360px;
-      padding: 0.6rem 0.75rem;
-      border: 1px solid var(--clin-border);
-      border-radius: 8px;
-      font: inherit;
+      </div>
+    } @else {
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        @for (pac of pacientes(); track pac.id) {
+          <article
+            class="flex flex-col gap-2 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card
+              transition-shadow hover:shadow-lg dark:border-slate-800 dark:bg-slate-900"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="text-base font-bold text-slate-800 dark:text-slate-100">{{ pac.nome }}</h3>
+              <span class="badge {{ pac.ativo ? 'badge--success' : 'badge--danger' }}">
+                {{ pac.ativo ? 'Ativo' : 'Inativo' }}
+              </span>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Telefone: {{ pac.telefone ?? '—' }}</p>
+            <div class="mt-auto pt-1">
+              <a class="btn btn--outline btn--sm" [routerLink]="['/prontuarios', pac.id]">
+                Abrir prontuário
+              </a>
+            </div>
+          </article>
+        }
+      </div>
     }
   `,
 })

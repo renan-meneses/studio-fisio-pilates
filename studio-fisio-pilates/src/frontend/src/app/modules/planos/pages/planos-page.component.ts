@@ -18,9 +18,9 @@ function moeda(valor: number): string {
   template: `
     <clin-page-header titulo="Planos" subtitulo="Planos comerciais e serviços incluídos" />
 
-    <form class="card form" [formGroup]="form" (ngSubmit)="salvar()">
-      <h3 class="form__title">Novo plano</h3>
-      <div class="form-grid">
+    <form class="card" [formGroup]="form" (ngSubmit)="salvar()">
+      <h3 class="mb-4 text-lg font-bold tracking-tight">Novo plano</h3>
+      <div class="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
         <div class="form-group">
           <label>Nome</label>
           <input formControlName="nome" placeholder="Ex.: Pilates 2x por semana" />
@@ -29,15 +29,15 @@ function moeda(valor: number): string {
           <label>Valor mensal (R$)</label>
           <input type="number" step="0.01" min="0" formControlName="valor" />
         </div>
-        <div class="form-group form-group--full">
+        <div class="form-group sm:col-span-2">
           <label>Descrição</label>
           <input formControlName="descricao" placeholder="Descrição opcional do plano" />
         </div>
       </div>
       @if (erro()) {
-        <p class="form__error">{{ erro() }}</p>
+        <p class="field-error my-2">{{ erro() }}</p>
       }
-      <div class="form__actions">
+      <div class="flex justify-end">
         <button type="submit" class="btn btn--primary" [disabled]="form.invalid || carregando()">
           {{ carregando() ? 'Salvando…' : 'Salvar plano' }}
         </button>
@@ -45,34 +45,34 @@ function moeda(valor: number): string {
     </form>
 
     @if (carregando()) {
-      <p class="hint">Carregando…</p>
+      <p class="py-4 text-center text-sm text-slate-500 dark:text-slate-400">Carregando…</p>
     } @else if (planos().length === 0) {
       <clin-empty-state icone="💳" titulo="Nenhum plano cadastrado" hint="Crie um plano e adicione os serviços incluídos." />
     } @else {
-      <div class="planos">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         @for (p of planos(); track p.id) {
-          <div class="card plano">
-            <div class="plano__head">
+          <div class="card flex flex-col gap-4">
+            <div class="flex items-start justify-between gap-4">
               <div>
-                <h3 class="plano__nome">{{ p.nome }}</h3>
+                <h3 class="text-lg font-bold tracking-tight">{{ p.nome }}</h3>
                 @if (p.descricao) {
-                  <p class="plano__descricao">{{ p.descricao }}</p>
+                  <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ p.descricao }}</p>
                 }
               </div>
-              <span class="plano__valor">{{ moeda(p.valor) }}</span>
+              <span class="whitespace-nowrap font-extrabold text-teal-700 dark:text-teal-300">{{ moeda(p.valor) }}</span>
             </div>
 
-            <div class="plano__servicos">
-              <span class="plano__label">Serviços incluídos:</span>
+            <div class="flex flex-col gap-1.5">
+              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Serviços incluídos:</span>
               @if (p.servicos.length === 0) {
-                <p class="plano__vazio">Nenhum serviço adicionado.</p>
+                <p class="m-0 text-sm text-slate-500 dark:text-slate-400">Nenhum serviço adicionado.</p>
               } @else {
-                <div class="chip">
+                <div class="flex flex-wrap gap-1.5">
                   @for (s of p.servicos; track s.id) {
-                    <span class="chip__item">
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-700 dark:bg-teal-400/10 dark:text-teal-300">
                       {{ s.nome }}
                       <button
-                        class="chip__remover"
+                        class="cursor-pointer border-none bg-transparent p-0 text-[11px] leading-none opacity-70 hover:opacity-100"
                         title="Remover serviço do plano"
                         (click)="remover(p, s)"
                       >
@@ -84,9 +84,9 @@ function moeda(valor: number): string {
               }
             </div>
 
-            <div class="plano__add">
+            <div>
               <select
-                class="plano__select"
+                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 transition-colors focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/25 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-100"
                 [value]="''"
                 (change)="adicionar(p, $event)"
               >
@@ -99,55 +99,6 @@ function moeda(valor: number): string {
           </div>
         }
       </div>
-    }
-  `,
-  styles: `
-    .form__title { margin-bottom: 1rem; font-size: 1.05rem; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
-    .form-group--full { grid-column: 1 / -1; }
-    .form__actions { display: flex; justify-content: flex-end; }
-    .form__error { color: var(--clin-danger); font-size: 0.85rem; margin: 0.5rem 0; }
-    .hint { color: var(--clin-text-muted); text-align: center; padding: 1rem 0; }
-    .planos { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
-    .plano { display: flex; flex-direction: column; gap: 1rem; }
-    .plano__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-    .plano__nome { font-size: 1.05rem; }
-    .plano__descricao { margin: 0.25rem 0 0; color: var(--clin-text-muted); font-size: 0.85rem; }
-    .plano__valor { font-weight: 800; color: var(--clin-primary-dark); white-space: nowrap; }
-    .plano__servicos { display: flex; flex-direction: column; gap: 0.4rem; }
-    .plano__label { font-size: 0.8rem; font-weight: 600; color: var(--clin-text-muted); }
-    .plano__vazio { margin: 0; color: var(--clin-text-muted); font-size: 0.85rem; }
-    .chip { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-    .chip__item {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: var(--clin-primary-light);
-      color: var(--clin-primary-dark);
-      padding: 0.3rem 0.6rem;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    .chip__remover {
-      border: none;
-      background: transparent;
-      color: inherit;
-      cursor: pointer;
-      font-size: 0.75rem;
-      padding: 0;
-      opacity: 0.7;
-
-      &:hover { opacity: 1; }
-    }
-    .plano__select {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid var(--clin-border);
-      border-radius: 8px;
-      font: inherit;
-      background: var(--clin-surface-alt);
-      color: var(--clin-text);
     }
   `,
 })

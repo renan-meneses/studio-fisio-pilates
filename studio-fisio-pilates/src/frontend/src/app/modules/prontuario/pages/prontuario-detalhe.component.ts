@@ -18,25 +18,34 @@ type Aba = 'dados' | 'anamneses' | 'evolucoes';
       <a class="btn btn--outline" routerLink="/prontuarios">← Voltar</a>
     </clin-page-header>
 
-    <div class="card cursor">
-      <nav class="tabs">
+    <div class="card">
+      <nav class="flex gap-1 overflow-x-auto">
         <button
-          class="tabs__item"
-          [class.tabs__item--active]="aba() === 'dados'"
+          type="button"
+          class="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2.5 font-semibold transition-colors"
+          [class]="aba() === 'dados'
+            ? 'bg-teal-600/10 text-teal-700 dark:bg-teal-400/10 dark:text-teal-300'
+            : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'"
           (click)="aba.set('dados')"
         >
           Dados
         </button>
         <button
-          class="tabs__item"
-          [class.tabs__item--active]="aba() === 'anamneses'"
+          type="button"
+          class="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2.5 font-semibold transition-colors"
+          [class]="aba() === 'anamneses'
+            ? 'bg-teal-600/10 text-teal-700 dark:bg-teal-400/10 dark:text-teal-300'
+            : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'"
           (click)="aba.set('anamneses')"
         >
           Anamneses
         </button>
         <button
-          class="tabs__item"
-          [class.tabs__item--active]="aba() === 'evolucoes'"
+          type="button"
+          class="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2.5 font-semibold transition-colors"
+          [class]="aba() === 'evolucoes'
+            ? 'bg-teal-600/10 text-teal-700 dark:bg-teal-400/10 dark:text-teal-300'
+            : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'"
           (click)="aba.set('evolucoes')"
         >
           Evoluções
@@ -45,19 +54,24 @@ type Aba = 'dados' | 'anamneses' | 'evolucoes';
     </div>
 
     @if (paciente(); as pac) {
-      <div class="card cursor">
+      <div class="card">
         @switch (aba()) {
           @case ('dados') {
-            <dl class="dados">
-              <dt>Nome</dt><dd>{{ pac.nome }}</dd>
-              <dt>Nascimento</dt><dd>{{ pac.dataNascimento ?? '—' }}</dd>
-              <dt>Telefone</dt><dd>{{ pac.telefone ?? '—' }}</dd>
-              <dt>E-mail</dt><dd>{{ pac.email ?? '—' }}</dd>
-              <dt>Convênio</dt><dd>{{ pac.convenio ?? '—' }}</dd>
+            <dl class="m-0 grid grid-cols-[140px_1fr] gap-y-2.5">
+              <dt class="font-semibold text-slate-500 dark:text-slate-400">Nome</dt>
+              <dd class="m-0">{{ pac.nome }}</dd>
+              <dt class="font-semibold text-slate-500 dark:text-slate-400">Nascimento</dt>
+              <dd class="m-0">{{ pac.dataNascimento ?? '—' }}</dd>
+              <dt class="font-semibold text-slate-500 dark:text-slate-400">Telefone</dt>
+              <dd class="m-0">{{ pac.telefone ?? '—' }}</dd>
+              <dt class="font-semibold text-slate-500 dark:text-slate-400">E-mail</dt>
+              <dd class="m-0">{{ pac.email ?? '—' }}</dd>
+              <dt class="font-semibold text-slate-500 dark:text-slate-400">Convênio</dt>
+              <dd class="m-0">{{ pac.convenio ?? '—' }}</dd>
             </dl>
           }
           @case ('anamneses') {
-            <h3 class="cursor__sub">Nova anamnese</h3>
+            <h3 class="mb-3 mt-6 text-base font-semibold first:mt-0">Nova anamnese</h3>
             <form [formGroup]="anamneseForm" (ngSubmit)="salvarAnamnese()">
               <div class="form-group">
                 <label>Queixa principal *</label>
@@ -67,12 +81,12 @@ type Aba = 'dados' | 'anamneses' | 'evolucoes';
                 <label>Histórico médico</label>
                 <textarea formControlName="historicoMedico" rows="2"></textarea>
               </div>
-              <div class="form-row">
-                <div class="form-group">
+              <div class="flex flex-col gap-4 sm:flex-row">
+                <div class="form-group flex-1">
                   <label>Alergias</label>
                   <input formControlName="alergias" />
                 </div>
-                <div class="form-group">
+                <div class="form-group flex-1">
                   <label>Medicamentos</label>
                   <input formControlName="medicamentos" />
                 </div>
@@ -83,19 +97,21 @@ type Aba = 'dados' | 'anamneses' | 'evolucoes';
             </form>
 
             @for (a of pac.anamneses; track a.id) {
-              <article class="cursor__item">
-                <header>
+              <article
+                class="mt-3 rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+              >
+                <header class="mb-1.5 flex items-center justify-between gap-2">
                   <strong>{{ a.queixaPrincipal }}</strong>
                   <span class="badge badge--muted">{{ a.data }}</span>
                 </header>
-                @if (a.historicoMedico) { <p><b>Histórico:</b> {{ a.historicoMedico }}</p> }
-                @if (a.alergias) { <p><b>Alergias:</b> {{ a.alergias }}</p> }
-                @if (a.medicamentos) { <p><b>Medicamentos:</b> {{ a.medicamentos }}</p> }
+                @if (a.historicoMedico) { <p class="my-1 text-sm"><b>Histórico:</b> {{ a.historicoMedico }}</p> }
+                @if (a.alergias) { <p class="my-1 text-sm"><b>Alergias:</b> {{ a.alergias }}</p> }
+                @if (a.medicamentos) { <p class="my-1 text-sm"><b>Medicamentos:</b> {{ a.medicamentos }}</p> }
               </article>
             }
           }
           @case ('evolucoes') {
-            <h3 class="cursor__sub">Nova evolução clínica</h3>
+            <h3 class="mb-3 mt-6 text-base font-semibold first:mt-0">Nova evolução clínica</h3>
             <form [formGroup]="evolucaoForm" (ngSubmit)="salvarEvolucao()">
               <div class="form-group">
                 <label>Descrição *</label>
@@ -111,51 +127,20 @@ type Aba = 'dados' | 'anamneses' | 'evolucoes';
             </form>
 
             @for (e of pac.evolucoes; track e.id) {
-              <article class="cursor__item">
-                <header>
+              <article
+                class="mt-3 rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+              >
+                <header class="mb-1.5 flex items-center justify-between gap-2">
                   <strong>{{ e.data }}</strong>
                 </header>
-                <p>{{ e.descricao }}</p>
-                @if (e.observacoes) { <p class="cursor__obs">{{ e.observacoes }}</p> }
+                <p class="my-1 text-sm">{{ e.descricao }}</p>
+                @if (e.observacoes) { <p class="my-1 text-sm text-slate-500 dark:text-slate-400">{{ e.observacoes }}</p> }
               </article>
             }
           }
         }
       </div>
     }
-  `,
-  styles: `
-    .tabs { display: flex; gap: 0.25rem; }
-    .tabs__item {
-      padding: 0.6rem 1rem;
-      border: none;
-      background: transparent;
-      font-weight: 600;
-      color: var(--clin-text-muted);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      &.aba--active { color: var(--clin-primary); border-bottom-color: var(--clin-primary); }
-    }
-    .dados {
-      display: grid;
-      grid-template-columns: 140px 1fr;
-      row-gap: 0.6rem;
-      margin: 0;
-    }
-    .dados dt { font-weight: 600; color: var(--clin-text-muted); }
-    .dados dd { margin: 0; }
-    .form-row { display: flex; gap: 1rem; }
-    .form-row .form-group { flex: 1; }
-    .cursor__sub { margin: 1.5rem 0 0.75rem; font-size: 1rem; }
-    .cursor__item {
-      border: 1px solid var(--clin-border);
-      border-radius: 8px;
-      padding: 0.9rem 1rem;
-      margin-top: 0.75rem;
-      header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
-      p { margin: 0.25rem 0; }
-    }
-    .cursor__obs { color: var(--clin-text-muted); }
   `,
 })
 export class ProntuarioDetalheComponent {

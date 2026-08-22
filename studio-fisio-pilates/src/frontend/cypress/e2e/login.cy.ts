@@ -38,7 +38,7 @@ describe('Autenticação', () => {
     cy.contains('button', 'Entrar').click();
 
     cy.wait('@login');
-    cy.contains('.login-card__error', 'Credenciais inválidas.').should('be.visible');
+    cy.contains('.field-error', 'Credenciais inválidas.').should('be.visible');
     cy.url().should('include', '/login');
   });
 });

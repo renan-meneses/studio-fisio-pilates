@@ -1,177 +1,153 @@
-@use 'sass:color';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --clin-primary: #0f766e;
-  --clin-primary-dark: #115e59;
-  --clin-primary-light: #ccfbf1;
-  --clin-accent: #f59e0b;
-  --clin-danger: #dc2626;
-  --clin-bg: #f1f5f9;
-  --clin-surface: #ffffff;
-  --clin-surface-alt: #f8fafc;
-  --clin-text: #0f172a;
-  --clin-text-muted: #64748b;
-  --clin-border: #e2e8f0;
-  --clin-radius: 10px;
-  --clin-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
-  --clin-badge-success-bg: #dcfce7;
-  --clin-badge-success-fg: #166534;
-  --clin-badge-warning-bg: #fef3c7;
-  --clin-badge-warning-fg: #92400e;
-  --clin-badge-danger-bg: #fee2e2;
-  --clin-badge-danger-fg: #991b1b;
-  --clin-badge-muted-bg: #f1f5f9;
-}
+/* ==========================================================================
+   Design system — Clínica SaaS
+   Paleta: teal (marca) + slate (neutros). Dark mode via [data-theme="dark"].
+   Classes de componente ficam aqui para manter as páginas enxutas.
+   ========================================================================== */
 
-:root[data-theme='dark'] {
-  --clin-primary: #14b8a6;
-  --clin-primary-dark: #2dd4bf;
-  --clin-primary-light: #134e4a;
-  --clin-accent: #fbbf24;
-  --clin-danger: #f87171;
-  --clin-bg: #0f172a;
-  --clin-surface: #1e293b;
-  --clin-surface-alt: #334155;
-  --clin-text: #e2e8f0;
-  --clin-text-muted: #94a3b8;
-  --clin-border: #334155;
-  --clin-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --clin-badge-success-bg: #14532d;
-  --clin-badge-success-fg: #86efac;
-  --clin-badge-warning-bg: #78350f;
-  --clin-badge-warning-fg: #fcd34d;
-  --clin-badge-danger-bg: #7f1d1d;
-  --clin-badge-danger-fg: #fca5a5;
-  --clin-badge-muted-bg: #334155;
-}
+@layer base {
+  html {
+    @apply antialiased bg-slate-100 text-slate-800 font-sans dark:bg-slate-950 dark:text-slate-200;
+  }
 
-* {
-  box-sizing: border-box;
-}
+  body {
+    margin: 0;
+    font-size: 14px;
+  }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: var(--clin-bg);
-  color: var(--clin-text);
-  font-size: 14px;
-}
+  h1, h2, h3 {
+    @apply font-bold tracking-tight;
+    margin: 0;
+  }
 
-h1, h2, h3 {
-  margin: 0;
-  font-weight: 700;
-}
+  a {
+    @apply no-underline;
+  }
 
-a {
-  color: var(--clin-primary);
-  text-decoration: none;
-}
-
-/* Componentes base */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  font-size: 0.9rem;
-
-  &:hover { opacity: 0.92; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  &--primary { background: var(--clin-primary); color: #fff; }
-  &--outline {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-300 dark:bg-slate-700;
+  }
+  ::-webkit-scrollbar-track {
     background: transparent;
-    color: var(--clin-primary);
-    border: 1px solid var(--clin-primary);
   }
-  &--danger { background: var(--clin-danger); color: #fff; }
 }
 
-.card {
-  background: var(--clin-surface);
-  border: 1px solid var(--clin-border);
-  border-radius: var(--clin-radius);
-  box-shadow: var(--clin-shadow);
-  padding: 1.25rem;
-}
+@layer components {
+  /* ---------- Botões ---------- */
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2
+      text-sm font-semibold transition-colors duration-150
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-offset-1
+      disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-offset-slate-900;
+  }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 1rem;
+  .btn--primary {
+    @apply btn bg-teal-600 text-white shadow-sm hover:bg-teal-500 active:bg-teal-700;
+  }
 
-  label { font-weight: 600; font-size: 0.85rem; color: var(--clin-text-muted); }
+  .btn--outline {
+    @apply btn border border-teal-600/60 bg-transparent text-teal-700 hover:bg-teal-50
+      dark:text-teal-300 dark:hover:bg-teal-400/10;
+  }
 
-  input, select, textarea {
-    padding: 0.6rem 0.75rem;
-    border: 1px solid var(--clin-border);
-    border-radius: 8px;
-    font: inherit;
-    background: var(--clin-surface-alt);
-    color: var(--clin-text);
+  .btn--ghost {
+    @apply btn border border-transparent bg-transparent text-slate-600 hover:bg-slate-200/70
+      dark:text-slate-300 dark:hover:bg-slate-700/60;
+  }
 
-    &:focus {
-      outline: 2px solid var(--clin-primary);
-      outline-offset: -1px;
-      background: var(--clin-surface);
+  .btn--danger {
+    @apply btn bg-red-600 text-white shadow-sm hover:bg-red-500 active:bg-red-700;
+  }
+
+  .btn--sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  /* ---------- Superfícies ---------- */
+  .card {
+    @apply rounded-2xl border border-slate-200/80 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900;
+  }
+
+  /* ---------- Formulários ---------- */
+  .form-group {
+    @apply mb-4 flex flex-col gap-1.5;
+
+    label {
+      @apply text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400;
     }
 
-    &.ng-invalid.ng-touched {
-      border-color: var(--clin-danger);
+    input,
+    select,
+    textarea {
+      @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-[inherit] text-sm text-slate-800
+        placeholder:text-slate-400 transition-colors focus:border-teal-500 focus:outline-none
+        focus:ring-2 focus:ring-teal-500/25 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100
+        dark:focus:border-teal-400;
     }
 
-    &::placeholder { color: var(--clin-text-muted); }
+    input.ng-invalid.ng-touched,
+    select.ng-invalid.ng-touched,
+    textarea.ng-invalid.ng-touched {
+      @apply border-red-400 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500/70;
+    }
+
+    option {
+      @apply text-slate-800 dark:text-slate-100;
+    }
   }
 
-  option { color: var(--clin-text); background: var(--clin-surface); }
-}
-
-.field-error {
-  color: var(--clin-danger);
-  font-size: 0.8rem;
-}
-
-.badge {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-
-  &--success { background: var(--clin-badge-success-bg); color: var(--clin-badge-success-fg); }
-  &--warning { background: var(--clin-badge-warning-bg); color: var(--clin-badge-warning-fg); }
-  &--danger { background: var(--clin-badge-danger-bg); color: var(--clin-badge-danger-fg); }
-  &--info { background: var(--clin-primary-light); color: var(--clin-primary-dark); }
-  &--muted { background: var(--clin-badge-muted-bg); color: var(--clin-text-muted); }
-}
-
-table.data-table {
-  width: 100%;
-  border-collapse: collapse;
-
-  th {
-    text-align: left;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--clin-text-muted);
-    padding: 0.6rem 0.75rem;
-    border-bottom: 1px solid var(--clin-border);
+  .field-error {
+    @apply text-xs font-medium text-red-600 dark:text-red-400;
   }
 
-  td {
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--clin-border);
-    font-size: 0.9rem;
+  /* ---------- Badges ---------- */
+  .badge {
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px]
+      font-semibold leading-5 ring-1 ring-inset;
   }
 
-  tr:hover td { background: var(--clin-surface-alt); }
+  .badge--success {
+    @apply bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-400/10 dark:text-emerald-300 dark:ring-emerald-400/20;
+  }
+
+  .badge--warning {
+    @apply bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-400/20;
+  }
+
+  .badge--danger {
+    @apply bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-400/10 dark:text-red-300 dark:ring-red-400/20;
+  }
+
+  .badge--info {
+    @apply bg-teal-50 text-teal-700 ring-teal-600/20 dark:bg-teal-400/10 dark:text-teal-300 dark:ring-teal-400/20;
+  }
+
+  .badge--muted {
+    @apply bg-slate-100 text-slate-600 ring-slate-500/20 dark:bg-slate-700/40 dark:text-slate-300 dark:ring-slate-500/20;
+  }
+
+  /* ---------- Tabelas ---------- */
+  .data-table {
+    @apply w-full border-collapse text-sm;
+
+    th {
+      @apply border-b border-slate-200 px-3 py-2.5 text-left text-[11px] font-semibold uppercase
+        tracking-wider text-slate-500 dark:border-slate-800 dark:text-slate-400;
+    }
+
+    td {
+      @apply border-b border-slate-100 px-3 py-3 dark:border-slate-800/70;
+    }
+
+    tbody tr {
+      @apply transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40;
+    }
+  }
 }

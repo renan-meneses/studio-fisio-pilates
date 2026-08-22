@@ -14,9 +14,9 @@ import { PAPEIS, Papel, Usuario } from '../models/usuario.model';
   template: `
     <clin-page-header titulo="Usuários" subtitulo="Gestão de acessos da clínica" />
 
-    <form class="card form" [formGroup]="form" (ngSubmit)="salvar()">
-      <h3 class="form__title">Novo usuário</h3>
-      <div class="form-grid">
+    <form class="card p-5" [formGroup]="form" (ngSubmit)="salvar()">
+      <h3 class="mb-4 text-[1.05rem] font-semibold">Novo usuário</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
         <div class="form-group">
           <label>Nome *</label>
           <input formControlName="nome" placeholder="Ex.: Bruna Souza" />
@@ -39,25 +39,25 @@ import { PAPEIS, Papel, Usuario } from '../models/usuario.model';
         </div>
       </div>
       @if (erro()) {
-        <p class="form__error">{{ erro() }}</p>
+        <p class="field-error mt-2">{{ erro() }}</p>
       }
-      <div class="form__actions">
+      <div class="flex justify-end mt-4">
         <button type="submit" class="btn btn--primary" [disabled]="form.invalid || carregando()">
           {{ carregando() ? 'Salvando…' : 'Criar usuário' }}
         </button>
       </div>
     </form>
 
-    <section class="card">
-      <header class="section">
-        <h2 class="section__title">Minha senha</h2>
+    <section class="card p-5 mt-4">
+      <header class="mb-3">
+        <h2 class="m-0 text-[1.05rem] font-semibold">Minha senha</h2>
       </header>
-      <form class="senha-form" [formGroup]="formSenha" (ngSubmit)="trocarSenha()">
-        <div class="form-group">
+      <form class="flex items-end gap-4 flex-wrap" [formGroup]="formSenha" (ngSubmit)="trocarSenha()">
+        <div class="form-group min-w-[200px] flex-1">
           <label>Senha atual</label>
           <input type="password" formControlName="senhaAtual" autocomplete="current-password" />
         </div>
-        <div class="form-group">
+        <div class="form-group min-w-[200px] flex-1">
           <label>Nova senha (mín. 8)</label>
           <input type="password" formControlName="novaSenha" autocomplete="new-password" />
         </div>
@@ -66,13 +66,13 @@ import { PAPEIS, Papel, Usuario } from '../models/usuario.model';
         </button>
       </form>
       @if (mensagemSenha()) {
-        <p class="hint-senha">{{ mensagemSenha() }}</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">{{ mensagemSenha() }}</p>
       }
     </section>
 
-    <div class="card">
+    <div class="card p-5 mt-4">
       @if (carregando()) {
-        <p class="hint">Carregando…</p>
+        <p class="text-center py-4 text-slate-500 dark:text-slate-400">Carregando…</p>
       } @else if (usuarios().length === 0) {
         <clin-empty-state icone="🔐" titulo="Nenhum usuário" hint="Crie o primeiro acesso da equipe." />
       } @else {
@@ -100,7 +100,7 @@ import { PAPEIS, Papel, Usuario } from '../models/usuario.model';
                 </td>
                 <td>{{ u.ultimoLogin ? (u.ultimoLogin | date: 'dd/MM/yyyy HH:mm') : '—' }}</td>
                 <td>
-                  <div class="acoes">
+                  <div class="flex gap-1.5 flex-wrap">
                     <button
                       class="btn btn--outline"
                       [disabled]="u.id === usuarioAtualId"
@@ -118,19 +118,6 @@ import { PAPEIS, Papel, Usuario } from '../models/usuario.model';
         </table>
       }
     </div>
-  `,
-  styles: `
-    .form__title { margin-bottom: 1rem; font-size: 1.05rem; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
-    .form__actions { display: flex; justify-content: flex-end; }
-    .form__error { color: var(--clin-danger); font-size: 0.85rem; margin: 0.5rem 0; }
-    .hint { color: var(--clin-text-muted); text-align: center; padding: 1rem 0; }
-    .section { display: flex; align-items: center; justify-content: space-between; }
-    .section__title { margin: 0 0 0.75rem; font-size: 1.05rem; }
-    .senha-form { display: flex; align-items: end; gap: 1rem; flex-wrap: wrap; }
-    .senha-form .form-group { min-width: 200px; }
-    .hint-senha { color: var(--clin-text-muted); font-size: 0.85rem; margin-top: 0.5rem; }
-    .acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; }
   `,
 })
 export class UsuariosPageComponent {

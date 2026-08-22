@@ -19,14 +19,14 @@ function brl(valor: number): string {
     <clin-page-header titulo="Financeiro" subtitulo="Acompanhamento mensal de receitas e despesas">
       <input
         type="month"
-        class="filter"
+        class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 transition-colors focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/25 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         [value]="competencia()"
         (change)="mudarCompetencia($event)"
       />
     </clin-page-header>
 
     @if (resumo(); as r) {
-      <div class="stats">
+      <div class="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <clin-stat-card label="Receita esperada" [value]="brl(r.receitaEsperada)" />
         <clin-stat-card label="Receita recebida" [value]="brl(r.receitaRecebida)" />
         <clin-stat-card label="Despesas pagas" [value]="brl(r.despesaPaga)" />
@@ -39,10 +39,10 @@ function brl(valor: number): string {
     }
 
     <section class="card">
-      <header class="section">
-        <h2 class="section__title">Cobrar mensalidade</h2>
+      <header class="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-lg font-bold tracking-tight">Cobrar mensalidade</h2>
       </header>
-      <form [formGroup]="cobrancaForm" (ngSubmit)="cobrar()" class="cobranca">
+      <form [formGroup]="cobrancaForm" (ngSubmit)="cobrar()" class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto]">
         <div class="form-group">
           <label>Paciente</label>
           <input formControlName="paciente" placeholder="Nome do paciente" />
@@ -62,11 +62,11 @@ function brl(valor: number): string {
     </section>
 
     <section class="card">
-      <header class="section">
-        <h2 class="section__title">Mensalidades — {{ competencia() }}</h2>
-        <div class="faturamento">
+      <header class="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-lg font-bold tracking-tight">Mensalidades — {{ competencia() }}</h2>
+        <div class="flex flex-wrap items-center gap-3">
           @if (mensagemFaturamento()) {
-            <span class="hint-faturamento">{{ mensagemFaturamento() }}</span>
+            <span class="text-sm text-slate-500 dark:text-slate-400">{{ mensagemFaturamento() }}</span>
           }
           <button
             class="btn btn--outline"
@@ -107,12 +107,12 @@ function brl(valor: number): string {
                   </span>
                 </td>
                 <td>
-                  <div class="acoes">
+                  <div class="flex flex-wrap gap-1.5">
                     @if (!m.paga) {
-                      <button class="btn btn--outline" (click)="emitirCobranca(m, 'Pix')" title="Emitir cobrança Pix">Pix</button>
-                      <button class="btn btn--outline" (click)="emitirCobranca(m, 'Boleto')" title="Emitir boleto">Boleto</button>
-                      <button class="btn btn--primary" (click)="receber(m)">Receber</button>
-                      <button class="btn btn--danger" (click)="cancelar(m)">Cancelar</button>
+                      <button class="btn btn--outline btn--sm" (click)="emitirCobranca(m, 'Pix')" title="Emitir cobrança Pix">Pix</button>
+                      <button class="btn btn--outline btn--sm" (click)="emitirCobranca(m, 'Boleto')" title="Emitir boleto">Boleto</button>
+                      <button class="btn btn--primary btn--sm" (click)="receber(m)">Receber</button>
+                      <button class="btn btn--danger btn--sm" (click)="cancelar(m)">Cancelar</button>
                     }
                   </div>
                 </td>
@@ -124,14 +124,14 @@ function brl(valor: number): string {
     </section>
 
     <section class="card">
-      <header class="section">
-        <h2 class="section__title">Inadimplência (vencidas em aberto)</h2>
+      <header class="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-lg font-bold tracking-tight">Inadimplência (vencidas em aberto)</h2>
       </header>
       @if (inadimplencia(); as i) {
         @if (i.itens.length === 0) {
           <clin-empty-state icone="✅" titulo="Nenhum vencido" hint="Todas as mensalidades estão em dia." />
         } @else {
-          <div class="stats stats--faixas">
+          <div class="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             @for (faixa of faixasOrdenadas(i); track faixa.nome) {
               <clin-stat-card [label]="'Atraso ' + faixa.nome + ' dias'" [value]="brl(faixa.valor)" />
             }
@@ -165,23 +165,6 @@ function brl(valor: number): string {
         }
       }
     </section>
-  `,
-  styles: `
-    .filter {
-      padding: 0.55rem 0.75rem;
-      border: 1px solid var(--clin-border);
-      border-radius: 8px;
-      font: inherit;
-      background: var(--clin-surface);
-    }
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
-    .section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-    .section__title { font-size: 1.05rem; }
-    .cobranca { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; align-items: end; }
-    .acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-    .faturamento { display: flex; align-items: center; gap: 0.75rem; }
-    .hint-faturamento { color: var(--clin-text-muted); font-size: 0.85rem; }
-    .stats--faixas { margin-bottom: 1rem; }
   `,
 })
 export class FinanceiroPageComponent {

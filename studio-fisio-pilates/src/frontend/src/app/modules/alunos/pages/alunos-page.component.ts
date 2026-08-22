@@ -14,9 +14,9 @@ import { Plano } from '../../planos/models/plano.model';
   template: `
     <clin-page-header titulo="Alunos" subtitulo="Cadastro de alunos e plano contratado" />
 
-    <form class="card form" [formGroup]="form" (ngSubmit)="salvar()">
-      <h3 class="form__title">Novo aluno</h3>
-      <div class="form-grid">
+    <form class="card" [formGroup]="form" (ngSubmit)="salvar()">
+      <h3 class="mb-4 text-base font-semibold text-slate-800 dark:text-slate-100">Novo aluno</h3>
+      <div class="grid gap-x-4 sm:grid-cols-2">
         <div class="form-group">
           <label>Nome *</label>
           <input formControlName="nome" placeholder="Nome" />
@@ -25,7 +25,7 @@ import { Plano } from '../../planos/models/plano.model';
           <label>Sobrenome</label>
           <input formControlName="sobrenome" placeholder="Sobrenome" />
         </div>
-        <div class="form-group form-group--full">
+        <div class="form-group sm:col-span-2">
           <label>Endereço</label>
           <input formControlName="endereco" placeholder="Rua, número, bairro, cidade" />
         </div>
@@ -52,9 +52,9 @@ import { Plano } from '../../planos/models/plano.model';
         </div>
       </div>
       @if (erro()) {
-        <p class="form__error">{{ erro() }}</p>
+        <p class="field-error mt-2">{{ erro() }}</p>
       }
-      <div class="form__actions">
+      <div class="mt-2 flex justify-end">
         <button type="submit" class="btn btn--primary" [disabled]="form.invalid || carregando()">
           {{ carregando() ? 'Salvando…' : 'Cadastrar aluno' }}
         </button>
@@ -63,7 +63,7 @@ import { Plano } from '../../planos/models/plano.model';
 
     <div class="card">
       @if (carregando()) {
-        <p class="hint">Carregando…</p>
+        <p class="py-4 text-center text-sm text-slate-500 dark:text-slate-400">Carregando…</p>
       } @else if (alunos().length === 0) {
         <clin-empty-state icone="🎓" titulo="Nenhum aluno cadastrado" hint="Cadastre o primeiro aluno e informe o plano." />
       } @else {
@@ -97,14 +97,6 @@ import { Plano } from '../../planos/models/plano.model';
         </table>
       }
     </div>
-  `,
-  styles: `
-    .form__title { margin-bottom: 1rem; font-size: 1.05rem; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
-    .form-group--full { grid-column: 1 / -1; }
-    .form__actions { display: flex; justify-content: flex-end; }
-    .form__error { color: var(--clin-danger); font-size: 0.85rem; margin: 0.5rem 0; }
-    .hint { color: var(--clin-text-muted); text-align: center; padding: 1rem 0; }
   `,
 })
 export class AlunosPageComponent {

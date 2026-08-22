@@ -31,90 +31,73 @@ const NAV: NavItem[] = [
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   template: `
-    <div class="shell">
-      <aside class="shell__sidebar">
-        <div class="shell__brand">Clínica<span>SaaS</span></div>
-        <nav class="shell__nav">
+    <div class="flex min-h-screen">
+      <aside
+        class="sticky top-0 flex h-screen w-60 shrink-0 flex-col gap-6 overflow-y-auto border-r border-slate-800/60 bg-slate-900 px-3 py-5"
+      >
+        <div class="flex items-center gap-2 px-2">
+          <div
+            class="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 text-base shadow-md shadow-teal-500/20"
+          >
+            ✚
+          </div>
+          <span class="text-[15px] font-extrabold tracking-tight text-white">
+            Clínica<span class="text-teal-400">SaaS</span>
+          </span>
+        </div>
+
+        <nav class="flex flex-col gap-1" aria-label="Navegação principal">
           @for (item of nav; track item.rota) {
             <a
-              class="shell__link"
+              class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white"
               [routerLink]="item.rota"
-              routerLinkActive="shell__link--active"
+              routerLinkActive="!bg-teal-400/10 !text-teal-300 ring-1 ring-inset ring-teal-400/25"
             >
-              <span aria-hidden="true">{{ item.icone }}</span>
+              <span aria-hidden="true" class="w-5 text-center text-[15px]">{{ item.icone }}</span>
               {{ item.rotulo }}
             </a>
           }
         </nav>
+
+        <div class="mt-auto rounded-xl bg-slate-800/50 p-3 text-xs leading-relaxed text-slate-400">
+          Multitenant · Fisio & Pilates
+        </div>
       </aside>
 
-      <div class="shell__main">
-        <header class="shell__topbar">
-          <div class="shell__tenant">
+      <div class="flex min-w-0 flex-1 flex-col">
+        <header
+          class="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-slate-200/70 bg-white/80 px-6 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80"
+        >
+          <div class="flex items-center gap-2 text-sm font-bold text-teal-700 dark:text-teal-300">
+            <span class="inline-block size-2 rounded-full bg-teal-500"></span>
             {{ tenant()?.tenantNome ?? 'Sem tenant' }}
           </div>
-          <div class="shell__user">
+          <div class="flex items-center gap-3 text-sm">
             <button
-              class="btn btn--outline shell__tema"
+              class="btn btn--ghost !px-2.5"
               (click)="alternarTema()"
               [title]="theme.tema() === 'Escuro' ? 'Modo claro' : 'Modo escuro'"
+              aria-label="Alternar tema"
             >
               {{ theme.tema() === 'Escuro' ? '☀️' : '🌙' }}
             </button>
-            <span>{{ usuario }}</span>
-            <button class="btn btn--outline" (click)="sair()">Sair</button>
+            <div class="flex items-center gap-2">
+              <div
+                class="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-xs font-bold uppercase text-white"
+                aria-hidden="true"
+              >
+                {{ iniciais() }}
+              </div>
+              <span class="hidden font-medium sm:inline">{{ usuario }}</span>
+            </div>
+            <button class="btn btn--outline btn--sm" (click)="sair()">Sair</button>
           </div>
         </header>
-        <main class="shell__content">
+        <main class="flex-1 p-6 animate-fade-in">
           <router-outlet />
         </main>
       </div>
     </div>
-  `,
-  styles: `
-    .shell { display: flex; min-height: 100vh; }
-    .shell__sidebar {
-      width: 230px;
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 1.25rem 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      border-right: 1px solid var(--clin-border);
-    }
-    .shell__brand { font-size: 1.1rem; font-weight: 800; color: #fff; padding: 0 0.5rem; }
-    .shell__brand span { color: var(--clin-accent); }
-    .shell__nav { display: flex; flex-direction: column; gap: 0.25rem; }
-    .shell__link {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      padding: 0.6rem 0.75rem;
-      border-radius: 8px;
-      color: #cbd5e1;
-      font-weight: 500;
-      transition: background 0.15s ease;
-
-      &:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
-      &.shell__link--active { background: var(--clin-primary); color: #fff; }
-    }
-    .shell__main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    .shell__topbar {
-      height: 56px;
-      background: var(--clin-surface);
-      border-bottom: 1px solid var(--clin-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.5rem;
-    }
-    .shell__tenant { font-weight: 700; color: var(--clin-primary-dark); }
-    .shell__user { display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; }
-    .shell__content { padding: 1.5rem; flex: 1; }
   `,
 })
 export class ShellComponent {
@@ -137,6 +120,14 @@ export class ShellComponent {
         const atual = localStorage.getItem('clinica.user');
         this.usuario = atual ? JSON.parse(atual).nome : '';
       });
+  }
+
+  iniciais(): string {
+    return this.usuario
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(parte => parte[0] ?? '')
+      .join('');
   }
 
   sair(): void {
